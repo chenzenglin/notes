@@ -1,12 +1,12 @@
-[TOC]
-
 # Notes
 
-> 简介
->* author -- stanley
->* version -- 0.0.1v
-
 ---
+
+## 简介
+```markdown
+   author  ||  stanley
+   version ||  0.0.2v
+```
 
 ## APUE
 
