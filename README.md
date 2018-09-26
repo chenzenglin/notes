@@ -1,13 +1,49 @@
 # Notes
 
----
-
 ## 简介
 ```markdown
-   author  ||  stanley
-   version ||  0.0.2v
+    author  ||  stanley
+    version ||  0.0.2v
 ```
+
+## LINUX
+
+### 压缩与解压缩
+
+- 压缩
+    - [ ]  tar  -cvf    jpg.tar     *.jpg   //将目录里所有jpg文件打包成tar.jpg 
+    - [x]  tar  -czf    jpg.tar.gz  *.jpg   //将目录里所有jpg文件打包成jpg.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为jpg.tar.gz
+    - [x]  tar  -cjf    jpg.tar.bz2 *.jpg   //将目录里所有jpg文件打包成jpg.tar后，并且将其用bzip2压缩，生成一个bzip2压缩过的包，命名为jpg.tar.bz2
+    - [ ]  tar  -cZf    jpg.tar.Z   *.jpg   //将目录里所有jpg文件打包成jpg.tar后，并且将其用compress压缩，生成一个umcompress压缩过的包，命名为jpg.tar.Z
+    - [ ]  rar  a       jpg.rar     *.jpg   //rar格式的压缩，需要先下载rar for linux
+    - [x]  zip          jpg.zip     *.jpg   //zip格式的压缩，需要先下载zip for linux
+    
+- 解压缩
+    - [ ]  tar  -xvf    file.tar        //解压tar
+    - [x]  tar  -xzvf   file.tar.gz     //解压tar.gz
+    - [x]  tar  -xjvf   file.tar.bz2    //解压tar.bz2
+    - [ ]  tar  -xZvf   file.tar.Z      //解压tar.Z
+    - [ ]  unrar    e   file.rar        //解压rar
+    - [x]  unzip        file.zip        //解压zip
 
 ## APUE
 
+### 准备工作
+
+
+- apue.h 缺失
+```markdown
+    download
+    notes/apue/res/src.3e.tar.gz     
+    tar -xzvf src.3e.tar.gz
+
+    cp ./apue.3e/include/apue.h /usr/include/
+    cp ./apue.3e/lib/error.c /usr/include/
+
+    编辑/usr/include/apue.h文件
+    在文件最后#endif前加上包含error.c的代码：
+    #include "error.c";
+```
+
 ## CPP
+
