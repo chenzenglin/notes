@@ -1,3 +1,10 @@
+## 目录
+**[简介](#简介)**<br>
+**[LINUX](#linux)**<br>
+**[APUE](#apue)**<br>
+**[CPP](#cpp)**<br>
+**[MAKE](#make)**<br>
+
 # Notes
 
 ## 简介
@@ -5,13 +12,6 @@
     author  ||  stanley
     version ||  0.0.2v
 ```
-
-## 目录
-**[LINUX](#linux)**<br>
-**[APUE](#apue)**<br>
-**[CPP](#cpp)**<br>
-**[MAKE](#make)**<br>
-
 
 ## LINUX
 
