@@ -68,18 +68,25 @@ open、read、write、lseed以及close
 	O_SEARCH		只搜索打开(应用于目录)
 		-- O_SEARCH用来验证在目录打开时它的搜索权限
 	
-	*以上5个常量必须制定一个且只能指定一个，以下是可选的
+	*以上5个常量必须制定一个且只能指定一个，以下是可选的。
 
-	O_APPEND		每次写是都追加到文件尾
-	O_CLOEXEC		把FD_CLOEXEC常量设置为文件描述符标志
+	O_APPEND		每次写是都追加到文件尾。
+	O_CLOEXEC		把FD_CLOEXEC常量设置为文件描述符标志。
 	O_CREAT			若此文件不存在则创建它。在使用此选项时，open函数需同时说明第三个参数mode
-				(openat函数需要说明第4个参数mode)，用mode指定该文件的访问权限
-	O_DIRECTORY
-	O_EXCL
-	O_NOFOLLOW
-	O_NONBLOCK
-	O_SYNC
-	O_TRUNC
-	O_TTY_INIT
-	O_DSYNC
+				(openat函数需要说明第4个参数mode)，用mode指定该文件的访问权限。
+	O_DIRECTORY		如果path引用的不是目录，则出错。
+	O_EXCL			如果同时制定了O_CREAT，而文件已经存在，则出错。用此可以测试一个文件是否
+				存在，如果不存在，则创建此文件，这使测试和创建两者成为一个原子操作。
+	O_NOCTTY		如果path引用的是终端设备，则不将该设备分配作为此进程的控制终端。
+	O_NOFOLLOW		如果path引用的是一个符号连接，则出错。
+	O_NONBLOCK		如果path引用的是一个FIFO，一个块特殊文件或一个字符特殊文件，则此选项为
+				文件的本次打开操作和后续的I/O操作设置非阻塞方式
+	O_SYNC			使每次write等待物理I/O操作完成，包括由该write操作引起的文件属性更新所需的I/O。
+	O_TRUNC			如果此文件存在，而且为只写或读写成功打开，则将其长度截断为0.
+	O_TTY_INIT		如果打开一个还未打开的终端设备，设置非标准termios参数值，使其符合Single
+				UNIX Specification。
+	O_DSYNC			使每次write要等待物理I/O操作完成，但是如果该写操作并不影响读取刚写入的
+				数据，则不需要等待文件属性被更新。
+	O_RSYNC			使每一个以文件描述符作为参数进行的read操作等待，直至所有对文件同一部分
+				挂起的写操作都完成。
 ```
