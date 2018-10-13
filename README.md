@@ -26,6 +26,21 @@
     - [ ]  unrar    e   file.rar        //解压rar
     - [x]  unzip        file.zip        //解压zip
 
+### 时间服务器上的时间同步
+
+1.  安装ntpdate工具
+```shell
+    yum -y install ntp ntpdate
+```
+2.  设置系统时间与网络时间同步
+'''shell
+    ntpdate cn.pool.ntp.org
+'''
+3.  将系统时间写入硬件时间
+```shell
+    hwclock --systohc
+```
+
 ## APUE
 
 ### 准备工作
