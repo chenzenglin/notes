@@ -48,7 +48,7 @@
     git config --global core.editor vim
 ```
 
-## APUE
+## [APUE](https://github.com/stanleyguo0207/notes/tree/master/apue/notes/apue.md)
 
 ### 准备工作
 
@@ -67,5 +67,9 @@
     #include "error.c";
 ```
 
-## CPP
+## [CPP](https://github.com/stanleyguo0207/notes/tree/master/cpp/notes/cpp.md)
+
+## [MAKE](https://github.com/stanleyguo0207/notes/tree/master/make/notes/make.md)
+
+
 
