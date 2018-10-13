@@ -41,6 +41,13 @@
     hwclock --systohc
 ```
 
+### Git
+
+1. 修改默认提交编译器
+```shell
+    git config --global core.editor vim
+```
+
 ## APUE
 
 ### 准备工作
