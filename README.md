@@ -54,6 +54,10 @@
 ```shell
     git config --global core.editor vim
 ```
+2. 如何提交一个空目录
+```shell
+    find . -type d -empty -exec touch {}/.gitignore \;
+```
 
 ## [APUE](https://github.com/stanleyguo0207/notes/tree/master/apue/notes/apue.md)
 
