@@ -1,7 +1,8 @@
-## 目录
+**目录**
+---
+
 <!-- TOC -->
 
-    - [目录](#目录)
 - [APUE学习笔记](#apue学习笔记)
     - [1. 限制](#1-限制)
         - [1.1. sysconf、pathconf和fpathconf](#11-sysconfpathconf和fpathconf)
