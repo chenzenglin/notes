@@ -20,6 +20,10 @@
         - [3.8. write](#38-write)
         - [3.9. I/O的效率](#39-io的效率)
         - [3.10 文件共享](#310-文件共享)
+        - [3.11. 原子操作](#311-原子操作)
+        - [3.12. dup和dup2](#312-dup和dup2)
+        - [3.13. sync、fsync和fdatasync](#313-syncfsync和fdatasync)
+        - [3.14. fcntl](#314-fcntl)
 
 <!-- /TOC -->
 
@@ -268,6 +272,170 @@ Linux没有将相关的数据结构分为i节点和v节点，而是采用了一�
 
 两个独立进程各自打开同一个文件
 ![同一文件结构图][2]
+
+每个进程都有自己的文件表项，是因为这可以使每个进程都有它自己的对该文件的当前偏移量。
+
+**注意**，文件描述符标志和文件状态标志在作用范围的区别，前者只用于一个进程的一个描述符，而后者则应用与指向该给定文件表项的任何进程中的所有描述符。
+
+### 3.11. 原子操作
+
+1. 追加到一个文件
+考虑一个进程，它要将数据追加到一个文件尾端。早期的UNIX系统版本并不支持open的O_APPEND选项，所以程序被编写成下列形式：
+```c
+if(lseek(fd, OL, 2) < 0) {		/* position to EOF */
+	err_sys("lseek error");
+}
+if(100 != write(fd, buf, 100)) {	/* and write */
+	err_sys("write error");
+}
+```
+2. 函数pread和pwirte
+```c
+#include <unistd.h>
+
+/**
+ * @param	fd	要读取的文件描述符
+ * @param	buf	读取数据存放的缓冲区
+ * @param	nbytes	读取字节数
+ * @param	offset	读文件前文件偏移量
+ * @return	读到的字节数，若已读到文件尾，返回0
+ * @return	-1	出错
+ */
+ssize_t pread(int fd, void *buf, size_t nbytes, off_t offset);
+
+/**
+ * @param	fd	要写入的文件描述符
+ * @param	buf	写入数据存放的缓冲区
+ * @param	nbytes	写入字节数
+ * @param	offset	写文件前文件偏移量
+ * @return	返回已写的字节数
+ * @return	-1	出错
+ */
+ssize_t pwrite(int fd, const void *buf, size_t nbytes, off_t offset);
+```
+调用pread相当于调用lseek后调用read
+- 调用pread时，无法终端其定位和读操作。
+- 不更新当前文件偏移量
+
+调用pwrite相当于调用lseek后调用write
+
+3. 创建一个文件
+```c
+if((fd = open(pathname, O_WRONLY)) < 0) {
+	if(ENOENT == errno) {
+		if((fd = creat(path, mode)) < 0) {
+			err_sys("creat error");
+		}
+	}
+}
+```
+
+一般而言，**原子操作**指的是由多步组成的一个操作。
+
+### 3.12. dup和dup2
+
+下面两个函数都可用来复制一个现有的文件描述符
+```c
+#include <unistd.h>
+
+/**
+ * @param	fd	要复制的文件描述符
+ * @return	新的文件描述符
+ * @return	-1	出错
+ */
+int dup(int fd);
+
+/**
+ * @param	fd	要复制的文件描述符
+ * @param	fd2	新的文件描述符
+ * @return	新的文件描述符
+ * @return	-1	出错
+ */
+int dup2(int fd, int fd2);
+```
+dup返回的新文件描述符一定是当前可用文件描述符中的最小数值。
+dup2可以用fd2指定新的描述符的值。如果fd2已经打开，则先将其关闭。若fd等于fd2，则dup2返回fd2，而不关闭它。否则，fd2的FD_CLOEXEC文件描述符标志就被清楚，这样fd2在进程调用exec时是打开状态。
+```c
+dup(fd);
+
+//等价于：
+fcntl(fd, F_DUPFD, 0);
+```
+```c
+dup2(fd, fd2);
+
+//等价于：
+fcntl(fd, F_DUPFD, fd2);
+```
+在后一种情况中，dup2并不完全等同于close加上fcntl。它们之间的区别具体如下：
+- dup2是一个原子操作，而close和fcntl包括两个函数调用。有可能在close和fcntl之间调用了信号捕捉函数，它可能修改文件描述符。如果不同的线程改变了文件描述符的话也会出现相同的问题。
+- dup2和fcntl有一些不同的errno。
+
+### 3.13. sync、fsync和fdatasync
+
+当内核需要重用缓冲区来存放其他磁盘块数据时，它会把所有延迟写数据块写入磁盘。为了保证磁盘上实际文件系统与缓冲区中内容的一致性，UNIX系统提供了sync、fsync和fdatasync三个函数。
+```c
+#include <unistd.h>
+
+/**
+ * @param	fd	同步文件描述符
+ * @return	0	成功
+ * @return	-1	出错
+ */ 
+int fsync(int fd);
+
+/**
+ * @param	fd	同步文件描述符
+ * @return	0	成功
+ * @return	-1	出错
+ */ 
+int fdatasync(int fd);
+
+//sync只是将所有修改过的块缓冲区排入队列，然后就返回，他并不等待实际写磁盘操作结束。
+void sync(void);
+```
+通常，成为update的系统守护进程周期性调用(一般每隔30秒)sync函数，这就保证了定期冲洗(flush)内核块缓冲区。
+fsync函数只对由文件描述符fd指定的一个文件起作用，并且等待写磁盘操作结束才返回。fsync可用于数据库这样的应用程序，这种应用程序需要确保修改过的块立即写到磁盘上。
+fdatasync函数类似于fsync，但它只影响文件的数据部分，而除数据外，fsync还会永不更新文件的属性。
+
+### 3.14. fcntl
+
+fcntl可以改变已经打开文件的属性。
+```c
+#include <fcntl.c>
+
+/**
+ * @param	fd	要修改文件的文件描述符
+ * @param	cmd	命令
+ * @param	arg	参数
+ * @return	依赖cmd
+ * @return	-1	出错
+ */
+int fcntl(int fd, int cmd, ... /* int arg */);
+```
+fcntl函数有以下5种功能：
+1. 复制一个已有的文件描述符(cmd=F_DUPFD或F_DUPFD_CLOEXEC)。
+2. 获取/设置文件描述符标志(cmd=F_GETFD或F_SETFD)。
+3. 获取/设置文件状态标志(cmd=F_GETFL或F_SETFL)。
+4. 获取/设置异步I/O所有权(cmd=F_GETOWN或F_SETOWN)。
+5. 获取/设置记录锁(cmd=F_GETLK、F_SETLK或F_SETLKW)。
+
+*F_DUPFD*
+	复制文件描述符fd。新文件描述符作为函数值返回。它是尚未打开的各描述符中大于等于第3个参数值(取为整数值)中各值的最小值。新描述符与fd共享同一文件表项。但是，新描述符有它自己的一套描述符标志，其FD_CLOEXEC文件描述符标志被消除(这表示该描述符在exec时仍保持有效)。
+*F_DUPFD_CLOEXEC*
+	复制文件描述符，设置与新描述符关联的FD_CLOEXEC文件描述符标志的值，返回新文件描述符。
+*F_GETFD*
+	对应与fd的文件描述符标志作为函数值返回。当前只定义了一份文件描述符标志FD_CLOEXEC。
+*F_SETFD*
+	对于fd设置文件描述符标志。新标志值按第3个参数(取为整数值)设置。
+*F_GETFL*
+	对应于fd的文件状态标志作为函数值返回。我们在说明open函数时，已描述了文件状态标志。遗憾的是，5个访问方式标志(O_RDONLY、O_WRONLY、O_RDWR、O_EXEC以及O_SEARCH)并不各占1位(如前所述，由于历史原因，前3个标志的值分别是0、1和2.这5个值互斥、一个文件的访问方式只能取这5个值之一)。因此首先必须用屏蔽字O_ACCMODE取得访问方式位，然后将结果与这5个值中的每一个相比较。
+*F_SETFL*
+	将文件状态标志设置为第3个参数的值(取为整数值)。可以更改的几个标志是：O_APPEND、O_NONBLOCK、O_SYNC、O_DSYNC、O_RSYNC、O_FSYNC和O_ASYNC。
+*F_GETOWN*
+	获取当前接受SIGIO和SIGURG信号的进程ID或者进程组ID。
+*F_SETOWN*
+	设置接受SIGIO和SIGURG信号的进程ID或进程组ID。正的arg指定一个进程ID，负的arg表示等于arg绝对值的一个进程组ID。
 
 [1]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon1.png
 [2]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon2.png
