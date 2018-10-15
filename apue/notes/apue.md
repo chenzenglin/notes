@@ -16,6 +16,9 @@
         - [3.4. creat](#34-creat)
         - [3.5. close](#35-close)
         - [3.6. lseek](#36-lseek)
+        - [3.7. read](#37-read)
+        - [3.8. write](#38-write)
+        - [3.9. I/O的效率](#39-io的效率)
 
 <!-- /TOC -->
 
@@ -187,3 +190,59 @@ off_t currpos;
 currpos = lseek(fd, 0, SEEK_CUR);
 ```
 如果文件描述符指向的是一个管道、FIFO或网络套接字，则lseek返回-1，并将errno设置为ESPIPE。
+
+文件偏移量可以大于文件的当前长度，在这种情况下，对该文件的下次写将加长该文件，并在文件中构成一个空洞，这一点是允许的。位于文件中但没有写过的字节都被读为0.
+文件中的空洞并不要求在磁盘上占用存储区。具体处理方式与文件系统的实现有关，当定位到超出文件尾端之后写时，对于新写的数据需要分配磁盘块，但是对于原文件尾部和新开始写位置之间的部分则不需要分配磁盘块。
+```shell
+od -c file.hole
+```
+使用od命令观察该文件的实际内容。命令行中的-c标志表示以字符方式打印文件内容。
+
+因为lseek使用的偏移量是off_t类型表示的，所以允许具体实现根据各自特定的平台自行选择大小合适的数据类型。现今大多数平台提供两组接口处理文件偏移量，一组使用32位文件偏移量，另一组使用64位文件偏移量。
+| 选项名称                | 说明                                      | name参数             |
+| ---------------------- | ----------------------------------------- | ------------------- |
+| _POSIX_V7_ILP32_OFF32  | int、long、指针和off_t类型是32位            | _SC_V7_ILP32_OFF32  |
+| _POSIX_V7_ILP32_OFFBIG | int、long、指针类型是32位，off_t类型至少64位 | _SC_V7_ILP32_OFFBIG |
+| _POSIX_V7_LP64_OFF64   | int类型32位，long、指针和off_t类型是64位     | _SC_V7_LP64_OFF64   |
+| _POSIX_V7_LP64_OFFBIG  | int类型32位，long、指针和off_t类型至少是64位 | _SC_V7_LP64_OFFBIG  |
+
+### 3.7. read
+
+```c
+#include <unistd.h>
+
+/**
+ * @param	fd	要读取的文件描述符
+ * @param	buf	读取数据存放的缓冲区
+ * @param	nbytes	读取字节数
+ * @return	读到的字节数，若已读到文件尾，返回0
+ * @return	-1	出错
+ */
+ssize_t read(int fd, void *buf, size_t nbytes);
+```
+read函数原型
+```c
+int read(int fd, char *buf, unsigned nbytes);
+```
+- 为了与ISO C一致，第2个参数由char *改为void *。在ISO C中，类型void *用于表示通用指针。
+- 其次，返回值必须是一个带符号的整型(ssize_t)，以保证能够返回正整数字节数、0或-1。
+- 最后，第3个参数在历史上是一个无符号整型，这允许一个16位的实现一次读或写的数据。新的基本系统数据类型ssize_t以提供带符号的返回值。
+
+### 3.8. write
+
+```c
+#include <unistd.h>
+
+/**
+ * @param	fd	要写入的文件描述符
+ * @param	buf	写入数据存放的缓冲区
+ * @param	nbytes	写入字节数
+ * @return	返回已写的字节数
+ * @return	-1	出错
+ */
+ssize_t write(int fd, const void *buf, size_t nbytes);
+```
+其返回值通常与参数nbytes的值相同，否则表示出错。
+
+### 3.9. I/O的效率
+
