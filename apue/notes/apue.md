@@ -260,6 +260,14 @@ ssize_t write(int fd, const void *buf, size_t nbytes);
 	c. 指向该文件v节点表项的指针。
 (3) 每个打开文件(或设备)都有一个v节点(v-node)结构。v节点包含了文件类型和对此文件进行各种操作函数的指针。对于大多数文件，v节点还包含了该文件的i节点(i-node，索引节点)。这些信息是在打开文件时从磁盘上读入内存的，所有，文件的所有相关信息都是随时可用的。例如，i节点包含了文件的所有者、文件长度、指向文件实际数据块在磁盘上所在位置的指针等。
 
-![][1]
+Linux没有使用v节点，而是使用了通用i节点结构。虽然两种实现有所不同，但在概念上，v节点和i节点是一样的。两者都指向文件系统特有的i节点结构。
+Linux没有将相关的数据结构分为i节点和v节点，而是采用了一个与文件系统相关的i节点和一个与文件系统无关的i节点。
 
-[1]: https://github.com/stanleyguo0207/notes/tree/master/apue/res/3-10-1.png
+打开文件的内核数据结构:
+![内核数据结构][1]
+
+两个独立进程各自打开同一个文件
+![同一文件结构图][2]
+
+[1]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon1.png
+[2]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon2.png
