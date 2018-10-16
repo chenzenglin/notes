@@ -1,16 +1,20 @@
-## 目录
+**目录**
+---
+
 **[简介](#简介)**<br>
 **[LINUX](#linux)**<br>
 **[APUE](#apue)**<br>
 **[CPP](#cpp)**<br>
 **[MAKE](#make)**<br>
+**[GDB](#gdb)**<br>
 
 # Notes
 
 ## 简介
 ```markdown
     author  ||  stanley
-    version ||  0.0.2v
+    version ||  0.0.3v
+    update  ||  2018-10-17 00:36:30
 ```
 
 ## LINUX
@@ -63,7 +67,6 @@
 
 ### 准备工作
 
-
 - apue.h 缺失
 ```markdown
     download
@@ -82,5 +85,10 @@
 
 ## [MAKE](https://github.com/stanleyguo0207/notes/tree/master/make/notes/make.md)
 
+### 前言
 
+Makefile是大型项目中必备的技能之一，所以花了些时间整理了文档。
 
+## [GDB](https://github.com/stanleyguo0207/notes/tree/master/gdb/notes/gdb.md)
+
+GDB调试是大型项目中必备的技能之一，所以花了些时间整理了文档。
