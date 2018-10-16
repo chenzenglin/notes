@@ -661,7 +661,31 @@ open和creat创建新文件时，新文件的用户ID设置为进程的有效用
 
 ### 4.6. 函数access和faccessat
 
+access和faccessat函数是按实际用ID和实际组ID进行访问权限测试的。
+```c
+#include <unistd.h>
 
+/**
+ * @return 0    成功
+ * @return -1   失败
+ */
+
+int addess(const char *pathname, int mode);
+
+int faccessat(int fd, const char *pathname, int mode, int flag);
+```
+其中，如果测试文件是否已经存在，mode就为F_OK；否则下表所列常量的按位或。
+
+| mode | 说明        |
+| ---- | ----------- |
+| R_OK | 测试读权限   |
+| W_OK | 测试写权限   |
+| X_OK | 测试执行权限 |
+
+faccessat函数与access函数在下面两种情况是相同的：
+一种是pathname参数为绝对路径，另一种是fd参数取值为AT_FDCWD而pathname参数为相对路径。
+否则，faccessat计算相对与打开目录（由fd参数指向）的pathname。
+flag参数可以用来改变faccessat的行为，如果flag设置为AT_EACCESS，访问检查用的是调用进程的有效用户ID和有效组ID，而不是实际用户ID和实际组ID。
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
