@@ -27,6 +27,8 @@
         - [3.15. ioctl](#315-ioctl)
         - [3.16. /dev/fd](#316-devfd)
     - [4. 文件和目录](#4-文件和目录)
+        - [4.1. stat、fstat、fstatat和lstat](#41-statfstatfstatat和lstat)
+        - [4.2. 文件类型](#42-文件类型)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -516,6 +518,92 @@ filter file2 | cat file1 /dev/fd/0 file3 | lpr
 ```
 
 ## 4. 文件和目录
+
+### 4.1. stat、fstat、fstatat和lstat
+
+```c
+#include <sys/stat.h>
+
+/**
+ * @return 0    成功
+ * @return -1   失败
+ */
+
+//返回pathname文件相关的信息结构
+int stat(const char *restrict pathname, struct stat *restrict buf);
+
+//获得已在描述符fd上打开文件的有关信息
+int fstat(int fd, struct stat *buf);
+
+//与stat类似，但是当命名的文件是一个符号链接时，返回该符号链接的信息，而不是由该符号链接引用的文件的信息
+int lstat(const char *restrict pathname, struct stat *restrict buf);
+
+//为一个相对于当前打开目录(由fd参数指向)的路径名返回文件统计信息
+int fstatat(int fd, const char *restrict pathname, struct stat *restrict buf, int flag);
+```
+fstatat中flag参数控制着是否跟随着一个符号链接。当AT_SYMLINK_NOFOLLOW标志被设置时，fstatat不会跟随符号链接，而是返回符号链接本身的信息。否则，在默认情况下，返回的是符号链接所指向的实际文件的信息。如果fd参数的值是AT_FDCWD，并且pathname参数是一个相对路径名，fstatat会计算相对于当前目录的pathname参数。如果pathname是一个绝对路径，fd参数就会被忽略。这两种情况下，根据flag的取值，fstatat的作用就跟stat和lstat一样。
+struct stat结构
+```c
+struct stat {
+    mode_t              st_mode;    /* file type & mode (permissions) */
+    ino_t               st_ino;     /* i-node number (serial number) */
+    dev_t               st_dev;     /* device number (file system) */
+    dev_t               st_rdev;    /* device number for special files */
+    nlink_t             st_nlink;   /* numer of links */
+    uid_t               st_uid;     /* user ID of owner */
+    gid_t               st_gid;     /* group ID for owner */
+    off_t               st_size;    /* size in bytes, for regular files */
+    struct timespec     st_atime;   /* time of last access */
+    struct timespec     st_mtime;   /* time of last modification */
+    struct timespec     st_ctime;   /* time of last file status change */
+    blksize_t           st_blksize; /* best I/O block size */
+    blkcnt_t            st_blocks;  /* number of disk blocks allocated */
+}
+```
+timespec结构类型按照秒和纳秒定义了时间，至少包括下面两个字段：
+```c
+time_t tv_sec;
+long tv_nsec;
+```
+
+### 4.2. 文件类型
+
+文件类型：
+1. 普通文件
+2. 目标文件
+3. 块特殊文件
+    这种类型的文件提供对设备（如磁盘）带缓冲的访问，每次访问以固定长度为单位进行。
+4. 字符特殊文件
+    这种类型的文件提供对设备不带缓冲区的访问，每次访问长度可变。系统中所有设备要么是字符特殊文件，要么是块特殊文件。
+5. FIFO
+    这这种类型的文件用于进程间通信，有时也称为命名管道。
+6. 套接字(socket)
+    这种类型的文件用于进程间的网络通信。套接字也可用于在一台宿主机上进程之间的非网络通信。
+7. 符号链接(symbolic link)
+    这种类型的文件指向另一个文件。
+
+文件类型信息包含在stat结构的st_mode成员中。
+
+| 宏         | 文件类型     |
+| ---------- | ----------- |
+| S_ISREG()  | 普通文件     |
+| S_ISDIR()  | 目录文件     |
+| S_ISCHR()  | 字符特殊文件 |
+| S_ISBLK()  | 块特殊文件   |
+| S_ISFIFO() | 管道或FIFO   |
+| S_ISLINK() | 符号链接     |
+| S_ISSOCK() | 套接字      |
+
+\<sys/stat.h>中的文件类型宏
+
+| 宏            | 对象的类型   |
+| ------------- | ----------- |
+| S_TYPEUSMQ()  | 消息队列     |
+| S_TYPEISSEM() | 信号量      |
+| S_TYPEISSHM() | 共享存储对象 |
+
+\<sys/stat.h>中IPC类型宏
+它们的参数并非st_mode，而是指向stat结构的指针。
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
