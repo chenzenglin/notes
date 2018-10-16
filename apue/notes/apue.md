@@ -591,7 +591,7 @@ long tv_nsec;
 | S_ISCHR()  | 字符特殊文件 |
 | S_ISBLK()  | 块特殊文件   |
 | S_ISFIFO() | 管道或FIFO   |
-| S_ISLINK() | 符号链接     |
+| S_ISLNK()  | 符号链接     |
 | S_ISSOCK() | 套接字      |
 
 \<sys/stat.h>中的文件类型宏
