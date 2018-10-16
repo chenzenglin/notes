@@ -24,6 +24,8 @@
         - [3.12. dup和dup2](#312-dup和dup2)
         - [3.13. sync、fsync和fdatasync](#313-syncfsync和fdatasync)
         - [3.14. fcntl](#314-fcntl)
+        - [3.15. ioctl](#315-ioctl)
+        - [3.16. /dev/fd](#316-devfd)
 
 <!-- /TOC -->
 
@@ -443,6 +445,58 @@ fcntl函数有以下5种功能：
 
 *F_SETOWN*
 - 设置接受SIGIO和SIGURG信号的进程ID或进程组ID。正的arg指定一个进程ID，负的arg表示等于arg绝对值的一个进程组ID。
+
+### 3.15. ioctl
+
+```c
+#include <unistd.h>     /* System V */
+#include <sys/ioctl.h>  /* BSD and Linux */
+
+/**
+ * @param   fd
+ * @param   request
+ * @return  其他值      成功
+ * @return  -1          出错
+ */
+int ioctl(int fd, int request, ...);    /* POSIX.1 */
+int ioctl(int fd, unsigned long request, ...);
+```
+在此原型中，我们表示的只是ioctl函数本身所要求的头文件。通常，还要求另外的设备专用头文件。例如，除POSIX.1所说明的基本操作之外，终端I/O的ioctl命令都需要头文件\<termios.h>。
+
+| 类别      | 变量名  | 头文件              | ioctl数 |
+| -------- | ------- | ------------------ | :-----: |
+| 盘标号    | DTOxxx  | \<sys/disklabel.h> | 4       |
+| 文件I/O   | FIOxxx  | \<sys/filio.h>     | 14      |
+| 磁盘I/O   | MTIOxxx | \<sys/mtio.h>      | 11      |
+| 套接字I/O | SIOxxx  | \<sys/sockio.h>    | 73      |
+| 终端I/O   | TIOxxx  | \<sys/ttycom.h>    | 43      |
+
+FreeBSD中通用的ioctl操作
+
+### 3.16. /dev/fd
+
+较新的系统都提供名为/dev/fd的目录，其目录项是名为0、1、2等的文件。打开文件/dev/fd/n等效于复制描述符n(假定描述符n是打开的)。
+```c
+fd = open("/dev/fd/0", mode);
+```
+等效于：
+```c
+fd = dup(0);
+```
+所以描述符0和fd共享同一文件表项。例如，若描述符0先前被打开为只读，那么我们只能对fd进行读操作。即使系统忽略打开模式，而且下列调用是成功的：
+```c
+fd = open("/dev/fd/0", O_RDWR);
+```
+我们仍然不能对fd进行写操作。
+
+/dev/fd文件主要由shell使用，它允许使用路径名作为调用参数的程序，能用处理其他路径名的相同方式处理标准输入和输出。例如，**cat**命令对其命令行参数采用了一种特殊处理，它将单独的一个字符“-”解释为标准输入。
+```shell
+filter file2 | cat file1 - file3 | lpr
+```
+```shell
+filter file2 | cat file1 /dev/fd/0 file3 | lpr
+```
+
 
 [1]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon1.png
 [2]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon2.png
