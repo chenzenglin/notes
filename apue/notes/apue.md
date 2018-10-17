@@ -40,6 +40,7 @@
         - [4.11 文件长度](#411-文件长度)
         - [4.12. 文件截断](#412-文件截断)
         - [4.13. 文件系统](#413-文件系统)
+        - [4.14. link、linkat、unlink、unlinkat和remove](#414-linklinkatunlinkunlinkat和remove)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -744,7 +745,7 @@ u=rwx,g=rx,o=
 
 /**
  * @return 0    成功
- * @return 1    失败
+ * @return -1    失败
  */
 
 int chmod(const char *pathname, mode_t mode);
@@ -806,8 +807,8 @@ S_ISVTX位被称为粘着位（sticky bit）。
 #include <unistd.h>
 
 /**
- * @return 0
- * @return -1   
+ * @return 0    成功
+ * @return -1   失败
  */
 
 int chown(const char *pathname, uid_t owner, gid_t group);
@@ -878,7 +879,7 @@ $ du -s file.hole*
 
 /**
  * @return 0    成功
- * @return 1    失败
+ * @return -1    失败
  */
 
 int truncate(const char *pathname, off_t length);
@@ -926,6 +927,22 @@ $mkdir testdir
 
 上图显示了其结果。注意，该图显式地显示了.和..目录项。
 编号2549的i节点，其类型字段表示它是一个目录，链接计数为2。任何一个叶目录（不包含任何其他目录的目录）的链接数总是2，数值2来自命名该目录（testdir）的目录项以及在该目录项中的.项。编号为1267的i节点，其类型字段表示它是一个目录，链接数大于等于3.它大于或等于3的原因是，至少有3个目录项指向它：一个是命名它的目录项（在图中没有表示出来），第二个是在该目录中的.项，第三个是在其子目录testdir中的..项。注意，在父目录中的每一个子目录都使该父目录的链接计数增加1。
+
+### 4.14. link、linkat、unlink、unlinkat和remove
+
+任何一个文件可以有多个目录项指向其i节点。创建一个指向现有文件的链接的方法是使用link函数或者linkat函数。
+```c
+#include <unistd.h>
+
+/**
+ * @return 0    成功
+ * @return -1   出错
+ */
+
+int link(const char *existingpath, const char *newpath);
+int linkat(int efd, const char *existingpath, int nfd, const char *newpath, int flag);
+```
+
 
 
 ## 5. 标准I/O库
