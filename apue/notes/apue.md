@@ -35,6 +35,9 @@
         - [4.6. 函数access和faccessat](#46-函数access和faccessat)
         - [4.7. umask](#47-umask)
         - [4.8. chmod、fchmod和fchmodat](#48-chmodfchmod和fchmodat)
+        - [4.9. 粘着位](#49-粘着位)
+        - [4.10. chown、fchown、fchownat和lchown](#410-chownfchownfchownat和lchown)
+        - [4.11 文件长度](#411-文件长度)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -779,6 +782,50 @@ chmod函数更新的只是i节点最近一次被更改的时间。
 chmod函数在系列条件下自动清楚两个权限位：
 -   Solaris等系统对于普通文件的粘着位赋予了特殊含义，在这些系统上如果我们试图设置普通文件的粘着位（S_ISVTX）而且又没有超级用户权限，那么mode中的粘着位自动被关闭。这意味着只有超级用户才能设置普通文件的粘着位。这样做的理由是防止恶意用户设置粘着位，由此影响系统性能。
 -   新创建文件的组ID可能不是调用进程所属的组。新文件的组ID可能是父目录的组ID。特别地，如果新文件的组ID不等于进程的有效组ID或者进程附属组ID中的一个，而且进程没有超级用户权限，那么设置组ID位会被自动被关闭。这就防止了用户创建一个设置组ID文件，而该文件是由并非该用户所属的组拥有的。
+
+### 4.9. 粘着位
+
+S_ISVTX位被称为粘着位（sticky bit）。
+如果一个可执行程序的这一位被设置了，那么当该程序第一次被执行，在其终止时，程序正文部分的一个副本仍被保存在交换区（程序的正文部分是机器指令）。这使得下次执行该程序时能较快地将其装载入内存。
+后来的UNIX版本称它为**保存正文位**（saved-test bit），因此也就有了常量S_ISVTX。现今较新的UNIX系统大多数都被指了虚拟存储系统以及快速文件系统，所以不再需要使用这种技术。
+
+如果对一个目录设置粘着位，只有对该目录具有写权限的用户并且满足系列条件之一，才能删除或重命名该目录下的文件：
+-   拥有此文件
+-   拥有此目录
+-   是超级用户
+
+目录/tmp和/var/tmp是设置粘着位的典型候选者——任何用户都可在这两个目录中创建文件。任意用户（用户、组和其他）对这两个目录的权限通常都是读、写和执行。但是用户不能删除或者重命名属于其他人的文件。
+
+### 4.10. chown、fchown、fchownat和lchown
+
+下面几个chown函数可用于更改文件的用户ID和组ID。如果两个参数owner或group中的任意一个是-1，则对应的ID不变。
+```c
+#include <unistd.h>
+
+/**
+ * @return 0
+ * @return -1   
+ */
+
+int chown(const char *pathname, uid_t owner, gid_t group);
+int fchown(int fd, uid_t owner, gid_t group);
+int fchownat(int fd, const char *pathname, uid_t owner, gid_t group, int flag);
+int lchown(const char *pathname, uid_t owner, gid_t group);
+```
+除了所引用的文件时符号链接以外，这4个函数的操作类似。在符号链接情况下，lchown和fchownat（设置了AT_SYMLINK_NOFOLLOW标志）更改符号链接本身的所有者，而不是该符号链接所指向的文件的所有者。
+fchown函数改变fd参数指向的打开文件的所有者，既然它在一个已经打开的文件上操作，就不能用于改变符号连接的所有者。
+fchownat函数与chown或者lchown函数在下面两种情况下是相同的：
+一种是pathname参数为绝对路径。
+另一种是fd参数取值为AT_FDCWD而pathname参数为相对路径。
+在这两种情况下，如果flag参数中设置了AT_SYMLINK_NOFOLLOW标志，fchownat与lchown行为相同。如果fd参数中清除了AT_SYMLINK_NOFOLOW标志，则fchownat与chown行为相同。如果fd参数设置为打开目录的文件描述符，并且pathname参数是一个相对路径名，fchownat函数计算相对于打开目录的pathname。
+若_POSIX_CHOWN_RESTRICTED对指定的文件生效，则
+1.  只有超级用户进程能改变该文件的用户ID
+2.  如果进程拥有此文件（其有效用户ID等于该文件的用户ID），参数owner等于-1或文件的用户ID，并且参数group等于进程的有效组ID或进程的附属组ID之一，那么一个非超级用户进程可以更改该文件的组ID。
+
+### 4.11 文件长度
+
+
+
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
