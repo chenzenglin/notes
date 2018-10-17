@@ -34,6 +34,7 @@
         - [4.5. 新文件和目录的所有权](#45-新文件和目录的所有权)
         - [4.6. 函数access和faccessat](#46-函数access和faccessat)
         - [4.7. umask](#47-umask)
+        - [4.8. chmod、fchmod和fchmodat](#48-chmodfchmod和fchmodat)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -701,6 +702,66 @@ umask函数为进程设置文件模式创建屏蔽字，并返回之前的值。
 mode_t umask(mode_t cmask);
 ```
 其中cmask由<a href="#href1">权限位表</a>表中列出的9个常量(S_IRUSR、S_IWUSR等)中的若干个按位“或”构成的。
+
+<a id="href2">umask文件访问权限位</a>
+
+| 屏蔽位 | 含义    |
+| ----- | ------- |
+| 0400  | 用户读   |
+| 0200  | 用户写   |
+| 0100  | 用户执行 |
+| 0040  | 组读     |
+| 0020  | 组写     |
+| 0010  | 组执行   |
+| 0004  | 其他读   |
+| 0002  | 其他写   |
+| 0001  | 其他执行 |
+
+常用的几种umask值是002、022和027。002阻止其他用户写入你的文件。022阻止同组成员和其他成员写入你的文件。027阻止同组成员写你的文件以及其他用户读、写和执行你的文件。
+
+符号格式指定许可的权限(即在文件创建屏蔽字中为0的位)而非拒绝的权限(即在文件创建屏蔽字中的为1的位)。
+```shell
+$ umask
+002
+$ umask -S
+u=rwx,g=rwx,o=rx
+$ umask 027
+$ umask -S
+u=rwx,g=rx,o=
+```
+
+### 4.8. chmod、fchmod和fchmodat
+
+这3个函数使我们可以更改现有文件的访问权限
+```c
+#include <sys/stat/h>
+
+/**
+ * @return 0    成功
+ * @return 1    失败
+ */
+
+int chmod(const char *pathname, mode_t mode);
+int fchmod(int fd, mode_t mode);
+int fchmodat(int fd, const char * pathname, mode_t mode, int flag);
+```
+chmod在指定的文件上进行操作。
+fchmod在已打开的文件上进行操作。
+fchmodat函数与chmod函数在下面两种情况下是相同的：
+一种是pathname参数为绝对路径，
+另一种是fd参数取值为AT_FDCWD而pathname参数为相对路径。
+否则，fchmodat计算相对于打开目录(由fd参数指定)的pathname。flag参数可以用于改变fchmodat的行为，当设置了AT_SYMLINK_NOFOLLOW标志时，fchmodat并不会跟随符号链接。
+
+<a id="href3">chmod函数的mode常量表</a>
+
+| mode                                                                         | 说明                                                                          |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| S_ISUID<br>S_ISGID<br>S_ISVTX                                                | 执行时设置用户ID<br>执行时设置组ID<br>保存正文（粘着位）                         |
+| S_IRWXU<br>&nbsp;&nbsp;S_IRUSR<br>&nbsp;&nbsp;S_IWUSR<br>&nbsp;&nbsp;S_IXUSR | 用户（所有者）读、写和执行<br>用户(所有者)读<br>用户(所有者)写<br>用户(所有者)执行 |
+| S_IRWXG<br>&nbsp;&nbsp;S_IRGRP<br>&nbsp;&nbsp;S_IWGRP<br>&nbsp;&nbsp;S_IXGRP | 组读、写和执行<br>组读<br>组写<br>组执行                                        |
+| S_IRWXO<br>&nbsp;&nbsp;S_IROTH<br>&nbsp;&nbsp;S_IWOTH<br>&nbsp;&nbsp;S_IXOTH | 其他读、写和执行<br>其他读<br>其他写<br>其他执行                                 |
+
+chmod函数的mode常量表取自<a href="#href1">权限位表</a>，另外加了6个。
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
