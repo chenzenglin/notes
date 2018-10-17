@@ -1345,9 +1345,9 @@ bar := $(subst $(space),$(comma),$(foo))
 $(subst <from>,<to>,<text>)
 ```
 -   名称：字符串替换函数——subst。
-    功能：把字串<text>中的<from>字符串替换成<to>。
-    返回：函数返回被替换过后的字符串。
-    示例：
+-   功能：把字串<text>中的<from>字符串替换成<to>。
+-   返回：函数返回被替换过后的字符串。
+-   示例：
     ```makefile
     $(subst ee,EE,feet on the street)，
     ```
@@ -1359,15 +1359,14 @@ $(subst <from>,<to>,<text>)
 $(patsubst <pattern>,<replacement>,<text>)
 ```
 -   名称：模式字符串替换函数——patsubst。
-    功能：查找\<text>中的单词（单词以“空格”、“Tab”或“回车”“换行”分隔）是否符合模式\<pattern>，如果匹配的话，则以\<replacement>替换。这里，\<pattern>可以包括通配符“\%”，表示任意长度的字串。如果\<replacement>中也包含“\%”，那么，\<replacement>中的这个“\%”将是\<pattern>中的那个“\%”所代表的字串。（可以用“\\”来转义，以“\\%”来表示真实含义的“\%”字符）
-    返回：函数返回被替换过后的字符串。
-    示例：
+-   功能：查找\<text>中的单词（单词以“空格”、“Tab”或“回车”“换行”分隔）是否符合模式\<pattern>，如果匹配的话，则以\<replacement>替换。这里，\<pattern>可以包括通配符“\%”，表示任意长度的字串。如果\<replacement>中也包含“\%”，那么，\<replacement>中的这个“\%”将是\<pattern>中的那个“\%”所代表的字串。（可以用“\\”来转义，以“\\%”来表示真实含义的“\%”字符）
+-   返回：函数返回被替换过后的字符串。
+-   示例：
     ```makefile
     $(patsubst %.c,%.o,x.c.c bar.c)
     ```
-    把字串“x.c.c bar.c”符合模式[%.c]的单词替换成[%.o]，返回结果是“x.c.o bar.o”
-    备注：
-    这和我们前面“变量章节”说过的相关知识有点相似。如：
+-   把字串“x.c.c bar.c”符合模式[%.c]的单词替换成[%.o]，返回结果是“x.c.o bar.o”
+-   备注：这和我们前面“变量章节”说过的相关知识有点相似。如：
     ```makefile
     $(var:<pattern>=<replacement>)
     ```
@@ -1403,9 +1402,9 @@ $(patsubst <pattern>,<replacement>,<text>)
 $(strip <string>)
 ```
 -   名称：去空格函数——strip。
-    功能：去掉\<string>字串中开头和结尾的空字符。
-    返回：返回被去掉空格的字符串值。
-    示例：
+-   功能：去掉\<string>字串中开头和结尾的空字符。
+-   返回：返回被去掉空格的字符串值。
+-   示例：
     ```makefile
     $(strip a b c )
     ```
@@ -1417,9 +1416,9 @@ $(strip <string>)
 $(findstring <find>,<in>)
 ```
 -   名称：查找字符串函数——findstring。
-    功能：在字串\<in>中查找\<find>字串。
-    返回：如果找到，那么返回\<find>，否则返回空字符串。
-    示例：
+-   功能：在字串\<in>中查找\<find>字串。
+-   返回：如果找到，那么返回\<find>，否则返回空字符串。
+-   示例：
     ```makefile
     $(findstring a,a b c)
     $(findstring a,b c)
@@ -1432,9 +1431,9 @@ $(findstring <find>,<in>)
 $(filter <pattern...>,<text>)
 ```
 -   名称：过滤函数——filter。
-    功能：以\<pattern>模式过滤\<text>字符串中的单词，保留符合模式\<pattern>的单词。可以有多个模式。
-    返回：返回符合模式\<pattern>的字串。
-    示例：
+-   功能：以\<pattern>模式过滤\<text>字符串中的单词，保留符合模式\<pattern>的单词。可以有多个模式。
+-   返回：返回符合模式\<pattern>的字串。
+-   示例：
     ```makefile
     sources := foo.c bar.c baz.s ugh.h
     foo : $(sources)
@@ -1448,9 +1447,9 @@ $(filter <pattern...>,<text>)
 $(filter-out <pattern...>,<text>)
 ```
 -   名称：反过滤函数——filter-out。
-    功能：以\<pattern>模式过滤\<text>字符串中的单词，去除符合模式\<pattern>的单词。可以有多个模式。
-    返回：返回不符合模式\<pattern>的字串。
-    示例：
+-   功能：以\<pattern>模式过滤\<text>字符串中的单词，去除符合模式\<pattern>的单词。可以有多个模式。
+-   返回：返回不符合模式\<pattern>的字串。
+-   示例：
     ```makefile
     objects = main1.o foo.o main2.o bar.o
     mains = main1.o main2.o
@@ -1464,10 +1463,10 @@ $(filter-out <pattern...>,<text>)
 $(sort <list>)
 ```
 -   名称：排序函数——sort。
-    功能：给字符串\<list>中的单词排序（升序）。
-    返回：返回排序后的字符串。
-    示例：\$(sort foo bar lose)返回“bar foo lose”。
-    备注：sort函数会**去掉**\<list>中相同的单词。
+-   功能：给字符串\<list>中的单词排序（升序）。
+-   返回：返回排序后的字符串。
+-   示例：\$(sort foo bar lose)返回“bar foo lose”。
+-   备注：sort函数会**去掉**\<list>中相同的单词。
 
 #### 8.2.8. word
 
@@ -1475,9 +1474,9 @@ $(sort <list>)
 $(word <n>,<text>)
 ```
 -   名称：取单词函数——word。
-    功能：取字符串\<text>中第\<n>个单词。（从一开始）
-    返回：返回字符串\<text>中第\<n>个单词。如果\<n>比\<text>中的单词数要大，那么返回空字符串。
-    示例：$(word 2, foo bar baz)返回值是“bar”。
+-   功能：取字符串\<text>中第\<n>个单词。（从一开始）
+-   返回：返回字符串\<text>中第\<n>个单词。如果\<n>比\<text>中的单词数要大，那么返回空字符串。
+-   示例：$(word 2, foo bar baz)返回值是“bar”。
 
 #### 8.2.9. wordlist
 
@@ -1485,9 +1484,9 @@ $(word <n>,<text>)
 $(wordlist <s>,<e>,<text>)
 ```
 -   名称：取单词串函数——wordlist。
-    功能：从字符串\<text>中取从\<s>开始到\<e>的单词串。\<s>和\<e>是一个数字。
-    返回：返回字符串\<text>中从\<s>到\<e>的单词字串。如果\<s>比\<text>中的单词数要大，那么返回空字符串。如果\<e>大于\<text>的单词数，那么返回从\<s>开始，到\<text>结束的单词串。
-    示例：\$(wordlist 2, 3,foo bar baz)返回值是“bar baz”。
+-   功能：从字符串\<text>中取从\<s>开始到\<e>的单词串。\<s>和\<e>是一个数字。
+-   返回：返回字符串\<text>中从\<s>到\<e>的单词字串。如果\<s>比\<text>中的单词数要大，那么返回空字符串。如果\<e>大于\<text>的单词数，那么返回从\<s>开始，到\<text>结束的单词串。
+-   示例：\$(wordlist 2, 3,foo bar baz)返回值是“bar baz”。
 
 #### 8.2.10. words
 
@@ -1495,10 +1494,10 @@ $(wordlist <s>,<e>,<text>)
 $(words <text>)
 ```
 -   名称：单词个数统计函数——words。
-    功能：统计\<text>中字符串中的单词个数。
-    返回：返回\<text>中的单词数。
-    示例：\$(words, foo bar baz)返回值是“3”。
-    备注：如果我们要取\<text>中最后的一个单词，我们可以这样：
+-   功能：统计\<text>中字符串中的单词个数。
+-   返回：返回\<text>中的单词数。
+-   示例：\$(words, foo bar baz)返回值是“3”。
+-   备注：如果我们要取\<text>中最后的一个单词，我们可以这样：
     ```makefile
     $(word $(words <text>),<text>)
     ```
@@ -1508,10 +1507,10 @@ $(words <text>)
 $(firstword <text>)
 ```
 -   名称：首单词函数——firstword。
-    功能：取字符串\<text>中的第一个单词。
-    返回：返回字符串\<text>的第一个单词。
-    示例：\$(firstword foo bar)返回值是“foo”。
-    备注：这个函数可以用word函数来实现：
+-   功能：取字符串\<text>中的第一个单词。
+-   返回：返回字符串\<text>的第一个单词。
+-   示例：\$(firstword foo bar)返回值是“foo”。
+-   备注：这个函数可以用word函数来实现：
     ```makefile
     $(word 1,<text>)
     ```
