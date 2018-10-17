@@ -824,8 +824,49 @@ fchownat函数与chown或者lchown函数在下面两种情况下是相同的：
 
 ### 4.11 文件长度
 
+<a href="#href3">stat结构</a>成员st_size表示以字节为单位的文件的长度。此字段只对普通文件、目录文件和符号链接有意义。
+对于普通文件：其文件长度可以是0，在开始读这个文件时，将得到文件结束（end-of-file）指示。
+对于目录文件：文件长度通常是一个数（如16或512）的整数倍。
+对于符号链接：文件长度是在文件名中的实际字节数。
+当我们将st_blksize用于读操作时，读一个文件所需的时间量最少。为了提高效率，标准I/O库也试图一次读、写st_blksize个字节。
+>应当了解的是，不同的UNIX版本其st_block所用的可能不是512字节的块。使用此值并不是可移植的。
 
+<font size="5"><b>文件的空洞</b></font>
+空洞是由所设置的偏移量超过文件尾端，并写入某些数据后造成的。
+```shell
+$ ls -l file.hole 
+-rw-r--r--. 1 stanley stanley 16394 Oct 15 12:33 file.hole
 
+$ du -s file.hole 
+8 file.hole
+
+$ od -c file.hole 
+0000000   a   b   c   d   e   f   g   h   i   j  \0  \0  \0  \0  \0  \0
+0000020  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0  \0
+*
+0040000   A   B   C   D   E   F   G   H   I   J
+0040012
+```
+
+>在Linux上，报告的块数单位取决于是否设置了环境变量POSIXLY_CORRECT。当设置了该环境变量，du命令报告的是1024字节块的块数；没有设置该环境变量是，du命令报告的是512字节快的块数。
+
+```shell
+$ wc -c file.hole 
+16394 file.hole
+```
+带-c选项的wc命令计算文件中的字符集（字节）。
+
+如果使用实用程序（如cat）复制这个文件，那么所有的这些空洞都会被填满，其中所有实际数据字节皆填写为0。
+```shell
+$ cat file.hole > file.hole.copy
+$ ls -l file.hole*
+-rw-r--r--. 1 stanley stanley 16394 Oct 15 12:33 file.hole
+-rw-rw-r--. 1 stanley stanley 16394 Oct 17 17:30 file.hole.copy
+
+$ du -s file.hole*
+8	file.hole
+20	file.hole.copy
+```
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
