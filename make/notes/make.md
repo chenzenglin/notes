@@ -52,6 +52,17 @@
     - [8. 使用函数](#8-使用函数)
         - [8.1. 函数的调用语法](#81-函数的调用语法)
         - [8.2. 字符串处理函数](#82-字符串处理函数)
+            - [8.2.1. subst](#821-subst)
+            - [8.2.2. patsubst](#822-patsubst)
+            - [8.2.3. strip](#823-strip)
+            - [8.2.4. findstring](#824-findstring)
+            - [8.2.5. filter](#825-filter)
+            - [8.2.6. filter-out](#826-filter-out)
+            - [8.2.7. sort](#827-sort)
+            - [8.2.8. word](#828-word)
+            - [8.2.9. wordlist](#829-wordlist)
+            - [8.2.10. words](#8210-words)
+            - [8.2.11. firstword](#8211-firstword)
     - [9. make运行](#9-make运行)
     - [10. 隐含规则](#10-隐含规则)
     - [11. 使用make更新函数库文件](#11-使用make更新函数库文件)
@@ -1327,6 +1338,9 @@ bar := $(subst $(space),$(comma),$(foo))
 在这个示例中，\$(comma)的值是一个逗号。\$(space)使用了\$(empty)定义了一个空格，\$(foo)的值是“a b c”，\$(bar)的定义用，调用了函数“subst”，这是一个替换函数，这个函数有三个参数，第一个参数是被替换字串，第二个参数是替换字串，第三个参数是替换操作作用的字串。这个函数也就是把\$(foo)中的空格替换成逗号，所以\$(bar)的值是“a,b,c”。
 
 ### 8.2. 字符串处理函数
+
+#### 8.2.1. subst
+
 ```makefile
 $(subst <from>,<to>,<text>)
 ```
@@ -1338,6 +1352,9 @@ $(subst <from>,<to>,<text>)
     $(subst ee,EE,feet on the street)，
     ```
     把“feetonthestreet”中的“ee”替换成“EE”，返回结果是“fEEt on the strEEt”。
+
+#### 8.2.2. patsubst
+
 ```makefile
 $(patsubst <pattern>,<replacement>,<text>)
 ```
@@ -1380,6 +1397,8 @@ $(patsubst <pattern>,<replacement>,<text>)
     ```
     是一样的。
 
+#### 8.2.3. strip
+
 ```makefile
 $(strip <string>)
 ```
@@ -1391,6 +1410,8 @@ $(strip <string>)
     $(strip a b c )
     ```
     把字串“a b c ”去到开头和结尾的空格，结果是“abc”。
+
+#### 8.2.4. findstring
 
 ```makefile
 $(findstring <find>,<in>)
@@ -1404,6 +1425,8 @@ $(findstring <find>,<in>)
     $(findstring a,b c)
     ```
     第一个函数返回“a”字符串，第二个返回“”字符串（空字符串）
+
+#### 8.2.5. filter
 
 ```makefile
 $(filter <pattern...>,<text>)
@@ -1419,6 +1442,8 @@ $(filter <pattern...>,<text>)
     ```
     \$(filter %.c %.s,\$(sources))返回的值是“foo.c bar.c baz.s”。
 
+#### 8.2.6. filter-out
+
 ```makefile
 $(filter-out <pattern...>,<text>)
 ```
@@ -1433,6 +1458,8 @@ $(filter-out <pattern...>,<text>)
     ```
     \$(filter-out \$(mains),\$(objects))返回值是“foo.o bar.o”。
 
+#### 8.2.7. sort
+
 ```makefile
 $(sort <list>)
 ```
@@ -1442,6 +1469,8 @@ $(sort <list>)
     示例：\$(sort foo bar lose)返回“bar foo lose”。
     备注：sort函数会**去掉**\<list>中相同的单词。
 
+#### 8.2.8. word
+
 ```makefile
 $(word <n>,<text>)
 ```
@@ -1450,6 +1479,8 @@ $(word <n>,<text>)
     返回：返回字符串\<text>中第\<n>个单词。如果\<n>比\<text>中的单词数要大，那么返回空字符串。
     示例：$(word 2, foo bar baz)返回值是“bar”。
 
+#### 8.2.9. wordlist
+
 ```makefile
 $(wordlist <s>,<e>,<text>)
 ```
@@ -1457,6 +1488,8 @@ $(wordlist <s>,<e>,<text>)
     功能：从字符串\<text>中取从\<s>开始到\<e>的单词串。\<s>和\<e>是一个数字。
     返回：返回字符串\<text>中从\<s>到\<e>的单词字串。如果\<s>比\<text>中的单词数要大，那么返回空字符串。如果\<e>大于\<text>的单词数，那么返回从\<s>开始，到\<text>结束的单词串。
     示例：\$(wordlist 2, 3,foo bar baz)返回值是“bar baz”。
+
+#### 8.2.10. words
 
 ```makefile
 $(words <text>)
@@ -1469,6 +1502,8 @@ $(words <text>)
     ```makefile
     $(word $(words <text>),<text>)
     ```
+#### 8.2.11. firstword
+
 ```makefile
 $(firstword <text>)
 ```
