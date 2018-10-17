@@ -39,6 +39,7 @@
         - [4.10. chown、fchown、fchownat和lchown](#410-chownfchownfchownat和lchown)
         - [4.11 文件长度](#411-文件长度)
         - [4.12. 文件截断](#412-文件截断)
+        - [4.13. 文件系统](#413-文件系统)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -553,7 +554,7 @@ int fstatat(int fd, const char *restrict pathname, struct stat *restrict buf, in
 ```
 fstatat中flag参数控制着是否跟随着一个符号链接。当AT_SYMLINK_NOFOLLOW标志被设置时，fstatat不会跟随符号链接，而是返回符号链接本身的信息。否则，在默认情况下，返回的是符号链接所指向的实际文件的信息。如果fd参数的值是AT_FDCWD，并且pathname参数是一个相对路径名，fstatat会计算相对于当前目录的pathname参数。如果pathname是一个绝对路径，fd参数就会被忽略。这两种情况下，根据flag的取值，fstatat的作用就跟stat和lstat一样。
 
-struct <a id="href3">stat结构</a>
+struct <a id="href4">stat结构</a>
 ```c
 struct stat {
     mode_t              st_mode;    /* file type & mode (permissions) */
@@ -826,7 +827,7 @@ fchownat函数与chown或者lchown函数在下面两种情况下是相同的：
 
 ### 4.11 文件长度
 
-<a href="#href3">stat结构</a>成员st_size表示以字节为单位的文件的长度。此字段只对普通文件、目录文件和符号链接有意义。
+<a href="#href4">stat结构</a>成员st_size表示以字节为单位的文件的长度。此字段只对普通文件、目录文件和符号链接有意义。
 对于普通文件：其文件长度可以是0，在开始读这个文件时，将得到文件结束（end-of-file）指示。
 对于目录文件：文件长度通常是一个数（如16或512）的整数倍。
 对于符号链接：文件长度是在文件名中的实际字节数。
@@ -885,6 +886,20 @@ int ftruncate(int fd, off_t length);
 ```
 这两个函数讲一个现有的文件长度截断为length。如果该文件以前的长度大于length，则超过length以外的数据就不能再访问。如果以前的长度小于length，文件长度将增加，在以前的文件尾端核心的文件尾端之前的数据将读作0（也就是可能在文件创建了一个空洞）。
 
+### 4.13. 文件系统
+
+UNIX文件系统的基本结构。
+自己i节点和指向i节点的目录项之间的区别。
+
+目前，正在使用的UNIX文件系统有多种实现。例如，Solaris支持多种不同类型的磁盘文件系统：传统的基本BSD的UNIX文件系统（成为UFS），读、写DOS格式软盘的文件系统（称为PCFS），以及读CD的文件系统（成为HSFS）。UFS是以Berkeley快速文件系统为基础的。
+
+>   大部分UNIX文件系统支持大小写敏感的文件名。在Mac OS X 上，HFS文件系统是大小写保留的，并且是大小写不敏感比较的。
+
+我么可以把一个磁盘分成一个或多个分区。每个分区可以包括一个文件系统。i节点是固定长度的记录项，它包含有关的大部分信息。
+
+<a id="href5">磁盘、分区和文件系统</a>
+
+![文件系统]][3]
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
@@ -904,5 +919,7 @@ int ftruncate(int fd, off_t length);
 ## 20. 数据库函数库
 ## 21. 与网络打印机通信
 
+[超链接最新编号]: href5
 [1]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon1.png
 [2]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon2.png
+[3]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon3.png
