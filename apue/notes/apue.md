@@ -551,7 +551,8 @@ int lstat(const char *restrict pathname, struct stat *restrict buf);
 int fstatat(int fd, const char *restrict pathname, struct stat *restrict buf, int flag);
 ```
 fstatat中flag参数控制着是否跟随着一个符号链接。当AT_SYMLINK_NOFOLLOW标志被设置时，fstatat不会跟随符号链接，而是返回符号链接本身的信息。否则，在默认情况下，返回的是符号链接所指向的实际文件的信息。如果fd参数的值是AT_FDCWD，并且pathname参数是一个相对路径名，fstatat会计算相对于当前目录的pathname参数。如果pathname是一个绝对路径，fd参数就会被忽略。这两种情况下，根据flag的取值，fstatat的作用就跟stat和lstat一样。
-struct stat结构
+
+struct <a id="href3">stat结构</a>
 ```c
 struct stat {
     mode_t              st_mode;    /* file type & mode (permissions) */
