@@ -38,6 +38,7 @@
         - [4.9. 粘着位](#49-粘着位)
         - [4.10. chown、fchown、fchownat和lchown](#410-chownfchownfchownat和lchown)
         - [4.11 文件长度](#411-文件长度)
+        - [4.12. 文件截断](#412-文件截断)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -868,6 +869,22 @@ $ du -s file.hole*
 8	file.hole
 20	file.hole.copy
 ```
+
+### 4.12. 文件截断
+
+```c
+#include <unistd.h>
+
+/**
+ * @return 0    成功
+ * @return 1    失败
+ */
+
+int truncate(const char *pathname, off_t length);
+int ftruncate(int fd, off_t length);
+```
+这两个函数讲一个现有的文件长度截断为length。如果该文件以前的长度大于length，则超过length以外的数据就不能再访问。如果以前的长度小于length，文件长度将增加，在以前的文件尾端核心的文件尾端之前的数据将读作0（也就是可能在文件创建了一个空洞）。
+
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
