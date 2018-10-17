@@ -942,8 +942,17 @@ $mkdir testdir
 int link(const char *existingpath, const char *newpath);
 int linkat(int efd, const char *existingpath, int nfd, const char *newpath, int flag);
 ```
+这两个函数创建一个新目录项newpath，它引用现有文件existingpath。如果newpath已经存在，则返回出错。只创建newpath中的最后一个分量，路径中的其他部分应当已经存在。
+linkat函数，现有文件通过efd和existingpath参数指定，新的路径名通过nfd和newpath参数指定的。默认情况下，如果两个路径名中任一个是相对路径，那么它需要通过相对于对应的文件描述符进行计算。如果两个描述符中的任一个设置为**AT_FDCWD**，那么相对应的路径名（如果它是相对路径）就通过相对于当前目录进行计算。如果任意路径名是绝对路径。相应的文件描述符就会被忽略。
+当现有文件是**符号链接**时，由flag参数来控制linkat函数是创建指向现有符号**链接的链接**，还是创建指向现有符号链接**所指向的文件的链接**。如果flag参数中设置了AT_SYMLINK_FOLLOW标志，就创建指向符号链接**目标的链接**。如果这个标志被清除了，则创建一个指向符号链接**本身的链接**。
 
+为了删除一个现有的目录项，可以调用unlink函数。
+```c
+#include <unistd.h>
 
+int unlink(const char *pathname);
+int unlinkat(int fd, const char *pathname, int flag);
+```
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
