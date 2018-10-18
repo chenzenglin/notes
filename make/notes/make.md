@@ -74,6 +74,9 @@
         - [8.4. foreach函数](#84-foreach函数)
         - [8.5. if函数](#85-if函数)
         - [8.6. call函数](#86-call函数)
+        - [8.7. origin函数](#87-origin函数)
+        - [8.8. shell函数](#88-shell函数)
+        - [8.9. 控制make的函数](#89-控制make的函数)
     - [9. make运行](#9-make运行)
     - [10. 隐含规则](#10-隐含规则)
     - [11. 使用make更新函数库文件](#11-使用make更新函数库文件)
@@ -1656,7 +1659,81 @@ foo = $(call reverse,a,b)
 ```
 此时的foo的值就是“b a”。
 
+### 8.7. origin函数
 
+origin函数不像其它的函数，他并不操作变量的值，他只是告诉你你的这个变量是哪里来的？其语法是：
+```makefile
+$(origin <variable>)
+```
+注意，\<variable>是变量的名字，不应该是引用。所以你最好不要在\<variable>中使用“\$”字符。Origin函数会以其返回值来告诉你这个变量的“出生情况”，下面，是origin函数的返回值:
+-   “undefined”
+    如果\<variable>从来没有定义过，origin函数返回这个值“undefined”。
+-   “default”
+    如果\<variable>是一个默认的定义，比如“CC”这个变量，这种变量我们将在后面讲述。
+-   “environment”
+    如果\<variable>是一个环境变量，并且当Makefile被执行时，“-e”参数没有被打开。
+-   “file”
+    如果\<variable>这个变量被定义在Makefile中。
+-   “command line”
+    如果\<variable>这个变量是被命令行定义的。
+-   “override”
+    如果\<variable>是被override指示符重新定义的。
+-   “automatic”
+    如果\<variable>是一个命令运行中的自动化变量。关于自动化变量将在后面讲述。
+
+这些信息对于我们编写Makefile是非常有用的，例如，假设我们有一个Makefile其包了一个定义文件Make.def，在Make.def中定义了一个变量“bletch”，而我们的环境中也有一个环境变量“bletch”，此时，我们想判断一下，如果变量来源于环境，那么我们就把之重定义了，如果来源于Make.def或是命令行等非环境的，那么我们就不重新定义它。于是，在我们的Makefile中，我们可以这样写：
+```makefile
+ifdef bletch
+
+ifeq "$(origin bletch)" "environment"
+
+bletch = barf, gag, etc.
+
+endif
+
+endif
+```
+当然，你也许会说，使用override关键字不就可以重新定义环境中的变量了吗？为什么需要使用这样的步骤？是的，我们用override是可以达到这样的效果，可是override过于粗暴，它同时会把从命令行定义的变量也覆盖了，而我们只想重新定义环境传来的，而不想重新定义命令行传来的。
+
+### 8.8. shell函数
+
+shell函数也不像其它的函数。顾名思义，它的参数应该就是操作系统Shell的命令。它和反引号“`”是相同的功能。这就是说，shell函数把执行操作系统命令后的输出作为函数返回。于是，我们可以用操作系统命令以及字符串处理命令awk，sed等等命令来生成一个变量，如：
+```makefile
+contents := $(shell cat foo)
+files := $(shell echo *.c)
+```
+注意，这个函数会新生成一个Shell程序来执行命令，所以你要注意其运行性能，如果你的Makefile中有一些比较复杂的规则，并大量使用了这个函数，那么对于你的系统性能是有害的。特别是Makefile的隐晦的规则可能会让你的shell函数执行的次数比你想像的多得多。
+
+### 8.9. 控制make的函数
+
+make提供了一些函数来控制make的运行。通常，你需要检测一些运行Makefile时的运行时信息，并且根据这些信息来决定，你是让make继续执行，还是停止。
+```makefile
+$(error <text...>)
+```
+产生一个致命的错误，\<text...>是错误信息。注意，error函数不会在一被使用就会产生错误信息，所以如果你把其定义在某个变量中，并在后续的脚本中使用这个变量，那么也是可以的。例如：
+
+示例一：
+```makefile
+ifdef ERROR_001
+
+$(error error is $(ERROR_001))
+
+endif
+```
+示例二：
+```makefile
+ERR = $(error found an error!)
+
+.PHONY: err
+
+err: ; $(ERR)
+```
+示例一会在变量ERROR_001定义了后执行时产生error调用，而示例二则在目录err被执行时才发生error调用。
+
+```
+$(warning <text...>)
+```
+这个函数很像error函数，只是它并不会让make退出，只是输出一段警告信息，而make继续执行。
 
 ## 9. make运行
 
