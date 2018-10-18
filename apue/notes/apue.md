@@ -43,6 +43,7 @@
         - [4.14. link、linkat、unlink、unlinkat和remove](#414-linklinkatunlinkunlinkat和remove)
         - [4.15. rename和renameat](#415-rename和renameat)
         - [4.16. 符号链接](#416-符号链接)
+        - [4.17 创建和读取符号链接](#417-创建和读取符号链接)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -1086,6 +1087,32 @@ $ ls -l myfile
 lrwxrwxrwx. 1 stanley stanley 13 Oct 18 16:29 myfile -> /no/such/file
 ```
 ls -l 选项给我们两个提示：第一个字符是1，它表示这是一个符号链接，而->也表明这是一个符号链接。ls命令还有另一个选项-F，它会在符号链接的文件名后加一个@符号，在未使用-l选项时，这可以帮助我们识别出符号链接。
+
+### 4.17 创建和读取符号链接
+
+```c
+#include <unistd.h>
+
+/**
+ * @return 0    成功
+ * @return -1   失败
+ */
+
+int symlink(const char *actulpath, const char *sympath);
+int symlinkat(const char *actulpath, int fd, const char *sympath);
+```
+函数创建一个指向actulpath的新目录项sympath。在创建此符号链接时，并不要求actulpath已经存在。
+
+因为open函数跟随符号链接，所以需要有一种方法打开该链接本身，并读该连接中的名字。
+```c
+#include <unistd.h>
+
+ssize_t readlink(const char *restrict pathname, char *restrict buf, size_t bufsize);
+ssize_t readlinkat();
+```
+关于restrict<sup>[解释](https://baike.baidu.com/item/restrict/7384270?fr=aladdin)</sup>关键字的解释。C语言中的一种类型限定符（Type Qualifiers），用于告诉编译器，对象已经被指针所引用，不能通过除该指针外所有其他直接或间接的方式修改该对象的内容。
+
+两个函数组合了open、read和close的所有操作。如果函数成功执行，则返回读入buf的字节数。在buf中返回的符号链接内容不以nul字符终止。
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
