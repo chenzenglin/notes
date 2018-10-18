@@ -42,6 +42,7 @@
         - [4.13. 文件系统](#413-文件系统)
         - [4.14. link、linkat、unlink、unlinkat和remove](#414-linklinkatunlinkunlinkat和remove)
         - [4.15. rename和renameat](#415-rename和renameat)
+        - [4.16. 符号链接](#416-符号链接)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -1025,6 +1026,67 @@ int renameat(int oldfd, const char *oldname, int newfd, const char *newname);
 4.  不能对.和..重命名。更确切地说，.和..都不能出现在oldname和newname的最后部分。
 5.  作为一个特例，如果oldname和newname引用同一个文件，则函数不做任何更改而返回成功。
 
+### 4.16. 符号链接
+
+符号链接是对一个文件的间接指针，它与上一节所属的硬链接有所不同，硬链接直接指向文件的i节点。
+-   硬链接通常要求链接和文件位于同一文件系统中。
+-   只有超级用户才能创建指向目录的硬链接（在底层文件系统支持的情况下）。
+
+若函数具有处理符号链接的功能，则其路径名参数引用由符号链接指向文件。否则，一个路径名参数引用链接本身，而不是由该链接指向的文件。
+
+<a id="href8">各个函数对符号链接的处理</a>
+
+-   不跟随符号链接的函数：
+    - [x]   lchown
+    - [x]   lstat
+    - [x]   readlink
+    - [x]   remove
+    - [x]   rename
+    - [x]   unlink
+
+-   跟随符号链接的函数：
+    - [x]   access
+    - [x]   chdir
+    - [x]   chmod
+    - [x]   creat
+    - [x]   exec
+    - [x]   link
+    - [x]   open
+    - [x]   opendir
+    - [x]   pathconf
+    - [x]   stat
+    - [x]   truncate
+
+上表的一个例外是，同时用O_CREAT和O_EXCL两者调用open函数。在此情况下，若路径名引用符号链接，open将出错返回，errno设置为EEXIST。这种处理方式的意图是堵塞一个安全性漏洞，以防止具有特权的进程被诱骗写错误的文件。
+
+使用符号链接可能在文件系统中引入循环。大多数查找路径名的函数在这种情况下发生时都将出错返回，errno值为ELOOP。
+```shell
+$ mkdir foo
+$ touch foo/a
+$ ln -s ../foo foo/testdir
+$ ls -l foo/
+total 0
+-rw-rw-r--. 1 stanley stanley 0 Oct 18 15:38 a
+lrwxrwxrwx. 1 stanley stanley 6 Oct 18 15:38 testdir -> ../foo
+```
+
+![构成循环的符号链接testdir][6]
+
+图中圆表示目录，正方形表示一个文件。
+这样一个循环是很容易消除的。因为unlink并不跟随符号链接，所以可以用unlink文件foo/testdir。但是如果创建了一个构成这样循环的硬链接，那么就很难消除它。这就是为什么link函数不允许构造指向目录的硬链接的原因。
+
+用open打开文件时，如果传递给open函数的路径名制定了一个符号链接，那么open跟随此链接到达所指定的文件。若次符号链接所指向的文件并不存在，则open返回出错，表示它不能打开该文件。
+```shell
+$ ln -s /no/such/file myfile
+$ ls myfile 
+myfile
+$ cat myfile 
+cat: myfile: No such file or directory
+$ ls -l myfile
+lrwxrwxrwx. 1 stanley stanley 13 Oct 18 16:29 myfile -> /no/such/file
+```
+ls -l 选项给我们两个提示：第一个字符是1，它表示这是一个符号链接，而->也表明这是一个符号链接。ls命令还有另一个选项-F，它会在符号链接的文件名后加一个@符号，在未使用-l选项时，这可以帮助我们识别出符号链接。
+
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
 ## 7. 进程环境
@@ -1045,9 +1107,10 @@ int renameat(int oldfd, const char *oldname, int newfd, const char *newname);
 
 
 <!-- 下面为超链接地址 -->
-[超链接最新编号]: href7
+[超链接最新编号]: href8
 [1]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon1.png
 [2]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon2.png
 [3]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon3.png
 [4]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon4.png
 [5]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon5.png
+[6]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon6.png
