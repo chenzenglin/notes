@@ -582,7 +582,7 @@ struct stat {
     blkcnt_t            st_blocks;  /* number of disk blocks allocated */
 }
 ```
-timespec结构类型按照秒和纳秒定义了时间，至少包括下面两个字段：
+<a id="timespec">timespec结构</a>类型按照秒和纳秒定义了时间，至少包括下面两个字段：
 ```c
 time_t tv_sec;
 long tv_nsec;
@@ -1120,6 +1120,11 @@ int symlinkat(const char *actulpath, int fd, const char *sympath);
 ```c
 #include <unistd.h>
 
+/**
+ * @return 读取的字节数     成功
+ * @return -1              失败
+ */
+
 ssize_t readlink(const char *restrict pathname, char *restrict buf, size_t bufsize);
 ssize_t readlinkat();
 ```
@@ -1355,7 +1360,18 @@ ls 系统默认（-l或-t选项调用时）是按文件的修改时间的先后�
 
 ### 4.19. futimens、utimensat和utimes
 
-futimens和utimensat函数可以指定那妙计精度的时间戳。用到的数据结构与
+futimens和utimensat函数可以指定那妙计精度的时间戳。用到的数据结构与<a href="#stat">stat</a>函数族相同的<a href="#timespec">timespec</a>结构。
+```c
+#include <sys/stat.h>
+
+/**
+ * @return 0    成功
+ * @return -1   失败
+ */
+
+int futimens(int fd, const struct timespec times[2]);
+int futimensat(int fd, const char *path, const struct timespec times[2], int flag);
+```
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
