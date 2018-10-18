@@ -961,6 +961,35 @@ int unlinkat(int fd, const char *pathname, int flag);
 只有当链接数达到0时，该文件的内容才可被删除。另一个条件也会阻止删除文件的内容——只要有进程打开了该文件，其内容也不能被删除。关闭一个文件时，内核首先检查打开该文件的进程个数；如果这个计数达到0，内核再去检查其链接计数；如果计数也是0，那么就删除该文件的内容。
 fd参数给出了一种方法，使调用进程可以改变unlinkat函数的默认行为。当AT_REMOVEDIR标志被设置时，unlinkat函数可以类似与rmdir一样删除目录。如果这个标志被清除，unlinkat与unlink执行同样的操作。
 
+```shell
+$ ls -l tempfile                查看文件大小
+-rw-rw-r--. 1 stanley stanley 4000000004 Oct 18 11:27 tempfile
+
+$ df /home/                     查看可用磁盘统建
+Filesystem     1K-blocks     Used Available Use% Mounted on
+/dev/sda3       28565504 15321728  11786064  57% /
+
+$ ./c_00016_unlink &            在后台运行程序
+[1] 3765                        shell打印其进程ID
+
+$ file unlinked                 删除文件链接
+
+ls -l tempfile                  观察文件是否仍然存在
+ls: cannot access tempfile: No such file or directory
+
+$ df /home                      检查可用磁盘空间有无变化
+Filesystem     1K-blocks     Used Available Use% Mounted on
+/dev/sda3       28565504 15321728  11786064  57% /
+
+$ done                          程序执行结束，关闭所有打开文件
+df /home                        检查可用磁盘空间有无变化
+
+Filesystem     1K-blocks     Used Available Use% Mounted on
+/dev/sda3       28565504 11415472  15692320  43% /
+[1]+  Done                    ./c_00016_unlink
+                                已用空间由57%变为43%
+```
+
 unlink的这种特性经常被程序用来确保即使是在程序崩溃时，它所创建的临时文件与不会遗留下来。进程用open和creat创建一个文件，然后立即调用unlink，因为该文件仍旧是打开的，所以不会将其内容删除。只有当进程关闭该文件或终止时（在这种情况下，内核关闭该进程所打开的全部文件），该文件的内容才被删除。
 
 我们也可以用remove函数解除对一个文件或目录的链接。对于文件，remove的功能与unlink相同。对于目录，remove的功能与rmdir相同。
