@@ -41,6 +41,7 @@
         - [4.12. 文件截断](#412-文件截断)
         - [4.13. 文件系统](#413-文件系统)
         - [4.14. link、linkat、unlink、unlinkat和remove](#414-linklinkatunlinkunlinkat和remove)
+        - [4.15. rename和renameat](#415-rename和renameat)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -1002,6 +1003,27 @@ unlink的这种特性经常被程序用来确保即使是在程序崩溃时，�
  */
 int remove(const char *pathname);
 ```
+
+### 4.15. rename和renameat
+
+文件或目录可以用rename函数或者renameat函数进行重命名。
+```c
+#include <stdio.h>
+
+/**
+ * @return 0    成功
+ * @return -1   失败
+ */
+
+int rename(const char *oldname, const char *newname);
+int renameat(int oldfd, const char *oldname, int newfd, const char *newname);
+```
+使用oldname是指文件、目录还是符号链接，有几种情况需要加以说明。
+1.  如果oldname指的是一个文件而不是目录，那么为该文件或符号链接重命名。在这种情况下，如果newname已存在，则它不能引用一个目录。如果newname已存在，而且不是一个目录，则先改该目录项删除然后将oldname重命名为newname。对包含oldname的目录以及包含newname的目录，调用进程必须具有写权限，因为将更改这两个目录。
+2.  如若oldname指的是一个目录，那么为该目录重命名。如果newname已存在，则它必须引用一个目录，而且该目录应当是空目录（空目录指的是目录项中只有.和..项）。如果newname存在（而且是一个空目录），则先将其删除，然后将oldname重命名为newname。另外，当为一个目录重命名时，newname不能包含oldname作为其路径前缀。例如，不能将/usr/foo重命名为/usr/foo/testdir，因为旧名字（/usr/foo）是新名字的路径前缀，因而不能将其删除。
+3.  如果oldname或newname引用符号链接，则处理的符号链接本身，而不是它所引用的文件。
+4.  不能对.和..重命名。更确切地说，.和..都不能出现在oldname和newname的最后部分。
+5.  作为一个特例，如果oldname和newname引用同一个文件，则函数不做任何更改而返回成功。
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
