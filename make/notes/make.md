@@ -63,6 +63,17 @@
             - [8.2.9. wordlist](#829-wordlist)
             - [8.2.10. words](#8210-words)
             - [8.2.11. firstword](#8211-firstword)
+        - [8.3. 文件名操作函数](#83-文件名操作函数)
+            - [8.3.1. dir](#831-dir)
+            - [8.3.2. notdir](#832-notdir)
+            - [8.3.3. suffix](#833-suffix)
+            - [8.3.4. basename](#834-basename)
+            - [8.3.5. addsuffix](#835-addsuffix)
+            - [8.3.6. addprefix](#836-addprefix)
+            - [8.3.7. join](#837-join)
+        - [8.4. foreach函数](#84-foreach函数)
+        - [8.5. if函数](#85-if函数)
+        - [8.6. call函数](#86-call函数)
     - [9. make运行](#9-make运行)
     - [10. 隐含规则](#10-隐含规则)
     - [11. 使用make更新函数库文件](#11-使用make更新函数库文件)
@@ -1519,6 +1530,133 @@ $(firstword <text>)
 override CFLAGS += $(patsubst %,-I%,$(subst :, ,$(VPATH)))
 ```
 如果我们的“\$(VPATH)”值是“src:../headers”，那么“\$(patsubst %,-I%,\$(subst:, ,\$(VPATH)))”将返回“-Isrc-I../headers”，这正是cc或gcc搜索头文件路径的参数。
+
+### 8.3. 文件名操作函数
+
+下面我们要介绍的函数主要是处理文件名的。每个函数的参数字符串都会被当做一个或是一系列的文件名来对待。
+
+#### 8.3.1. dir
+
+```makefile
+$(dir <names...>)
+```
+-   名称：取目录函数——dir。
+-   功能：从文件名序列\<names>中取出目录部分。目录部分是指最后一个反斜杠（“/”）之前的部分。如果没有反斜杠，那么返回“./”。
+-   返回：返回文件名序列\<names>的目录部分。
+-   示例：\$(dir src/foo.c hacks)返回值是“src/ ./”。
+
+#### 8.3.2. notdir
+
+```makefile
+$(notdir <names...>)
+```
+-   名称：取文件函数——notdir。
+-   功能：从文件名序列<names>中取出非目录部分。非目录部分是指最后一个反斜杠（“/”）之后的部分。
+-   返回：返回文件名序列<names>的非目录部分。
+-   示例：\$(notdir src/foo.c hacks)返回值是“foo.c hacks”。
+
+#### 8.3.3. suffix
+
+```makefile
+$(suffix <names...>)
+```
+-   名称：取后缀函数——suffix。
+-   功能：从文件名序列\<names>中取出各个文件名的后缀。
+-   返回：返回文件名序列\<names>的后缀序列，如果文件没有后缀，则返回空字串。
+-   示例：\$(suffix src/foo.c src-1.0/bar.c hacks)返回值是“.c .c”。
+
+#### 8.3.4. basename
+
+```makefile
+$(basename <names...>)
+```
+-   名称：取前缀函数——basename。
+-   功能：从文件名序列\<names>中取出各个文件名的前缀部分。
+-   返回：返回文件名序列\<names>的前缀序列，如果文件没有前缀，则返回空字串。
+-   示例：$(basename src/foo.c src-1.0/bar.c hacks)返回值是“src/foo src-1.0/bar hacks”。
+
+#### 8.3.5. addsuffix
+
+```makefile
+$(addsuffix <suffix>,<names...>)
+```
+-   名称：加后缀函数——addsuffix。
+-   功能：把后缀\<suffix>加到\<names>中的每个单词后面。
+-   返回：返回加过后缀的文件名序列。
+-   示例：\$(addsuffix .c,foo bar)返回值是“foo.c bar.c”。
+
+#### 8.3.6. addprefix
+
+```makefile
+$(addprefix <prefix>,<names...>)
+```
+-   名称：加前缀函数——addprefix。
+-   功能：把前缀\<prefix>加到\<names>中的每个单词后面。
+-   返回：返回加过前缀的文件名序列。
+-   示例：\$(addprefix src/,foo bar)返回值是“src/foo src/bar”。
+
+#### 8.3.7. join
+
+```makefile
+$(join <list1>,<list2>)
+```
+-   名称：连接函数——join。
+-   功能：把\<list2>中的单词对应地加到\<list1>的单词后面。如果\<list1>的单词个数要比\<list2>的多，那么，\<list1>中的多出来的单词将保持原样。如果\<list2>的单词个数要比\<list1>多，那么，\<list2>多出来的单词将被复制到\<list1>中。
+-   返回：返回连接过后的字符串。
+-   示例：\$(join aaa bbb , 111 222 333)返回值是“aaa111 bbb222 333”。
+
+### 8.4. foreach函数
+
+foreach函数和别的函数非常的不一样。因为这个函数是用来做循环用的，Makefile中的foreach函数几乎是仿照于Unix标准Shell（/bin/sh）中的for语句，或是C-Shell（/bin/csh）中的foreach语句而构建的。它的语法是：
+```makefile
+$(foreach <var>,<list>,<text>)
+```
+这个函数的意思是，把参数\<list>中的单词逐一取出放到参数\<var>所指定的变量中，然后再执行\<text>所包含的表达式。每一次\<text>会返回一个字符串，循环过程中，\<text>的所返回的每个字符串会以空格分隔，最后当整个循环结束时，\<text>所返回的每个字符串所组成的整个字符串（以空格分隔）将会是foreach函数的返回值。
+
+所以，\<var>最好是一个变量名，\<list>可以是一个表达式，而\<text>中一般会使用\<var>这个参数来依次枚举\<list>中的单词。举个例子：
+```makefile
+names := a b c d
+files := $(foreach n,$(names),$(n).o)
+```
+上面的例子中，\$(name)中的单词会被挨个取出，并存到变量“n”中，“\$(n).o”每次根据“\$(n)”计算出一个值，这些值以空格分隔，最后作为foreach函数的返回，所以，\$(files)的值是“a.o b.o c.o d.o”。
+
+注意，foreach中的\<var>参数是一个临时的局部变量，foreach函数执行完后，参数\<var>的变量将不在作用，其作用域只在foreach函数当中。
+
+### 8.5. if函数
+
+if函数很像GNU的make所支持的条件语句——ifeq（参见前面所述的章节），if函数的语法是：
+```makefile
+$(if <condition>,<then-part>)
+```
+或是
+```makefile
+$(if <condition>,<then-part>,<else-part>)
+```
+可见，if函数可以包含“else”部分，或是不含。即if函数的参数可以是两个，也可以是三个。\<condition>参数是if的表达式，如果其返回的为非空字符串，那么这个表达式就相当于返回真，于是，\<then-part>会被计算，否则\<else-part>会被计算。
+
+而if函数的返回值是，如果\<condition>为真（非空字符串），那个\<then-part>会是整个函数的返回值，如果\<condition>为假（空字符串），那么\<else-part>会是整个函数的返回值，此时如果\<else-part>没有被定义，那么，整个函数返回空字串。
+
+所以，\<then-part>和\<else-part>只会有一个被计算。
+
+### 8.6. call函数
+
+call函数是唯一一个可以用来创建新的参数化的函数。你可以写一个非常复杂的表达式，这个表达式中，你可以定义许多参数，然后你可以用call函数来向这个表达式传递参数。其语法是：
+```makefile
+$(call <expression>,<parm1>,<parm2>,<parm3>...)
+```
+当make执行这个函数时，\<expression>参数中的变量，如\$(1)，\$(2)，\$(3)等，会被参数\<parm1>，\<parm2>，\<parm3>依次取代。而\<expression>的返回值就是call函数的返回值。例如：
+```makefile
+reverse = $(1) $(2)
+foo = $(call reverse,a,b)
+```
+那么，foo的值就是“a b”。当然，参数的次序是可以自定义的，不一定是顺序的，如：
+```makefile
+reverse = $(2) $(1)
+foo = $(call reverse,a,b)
+```
+此时的foo的值就是“b a”。
+
+
 
 ## 9. make运行
 
