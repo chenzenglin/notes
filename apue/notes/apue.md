@@ -44,6 +44,7 @@
         - [4.15. rename和renameat](#415-rename和renameat)
         - [4.16. 符号链接](#416-符号链接)
         - [4.17 创建和读取符号链接](#417-创建和读取符号链接)
+        - [4.18. 文件的时间](#418-文件的时间)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -110,6 +111,7 @@ open、read、write、lseed以及close
 
 ### 3.3. open和openat
 
+<a id="open"></a>
 ```c
 #include <fcntl.h>
 
@@ -174,6 +176,7 @@ fd参数把open和openat函数区分开，共有3种可能性：
 
 ### 3.4. creat
 
+<a id="creat"></a>
 ```c
 #include <fcntl.h>
 
@@ -251,6 +254,7 @@ od -c file.hole
 
 ### 3.7. read
 
+<a id="read"></a>
 ```c
 #include <unistd.h>
 
@@ -273,6 +277,7 @@ int read(int fd, char *buf, unsigned nbytes);
 
 ### 3.8. write
 
+<a id="write"></a>
 ```c
 #include <unistd.h>
 
@@ -743,6 +748,7 @@ u=rwx,g=rx,o=
 ### 4.8. chmod、fchmod和fchmodat
 
 这3个函数使我们可以更改现有文件的访问权限
+<a id="chmod"></a>
 ```c
 #include <sys/stat/h>
 
@@ -806,6 +812,7 @@ S_ISVTX位被称为粘着位（sticky bit）。
 ### 4.10. chown、fchown、fchownat和lchown
 
 下面几个chown函数可用于更改文件的用户ID和组ID。如果两个参数owner或group中的任意一个是-1，则对应的ID不变。
+<a id="chown"></a><a id="lchown"></a>
 ```c
 #include <unistd.h>
 
@@ -877,6 +884,7 @@ $ du -s file.hole*
 
 ### 4.12. 文件截断
 
+<a id="truncate"></a>
 ```c
 #include <unistd.h>
 
@@ -934,6 +942,7 @@ $mkdir testdir
 ### 4.14. link、linkat、unlink、unlinkat和remove
 
 任何一个文件可以有多个目录项指向其i节点。创建一个指向现有文件的链接的方法是使用link函数或者linkat函数。
+<a id="link"></a>
 ```c
 #include <unistd.h>
 
@@ -950,6 +959,7 @@ linkat函数，现有文件通过efd和existingpath参数指定，新的路径�
 当现有文件是**符号链接**时，由flag参数来控制linkat函数是创建指向现有符号**链接的链接**，还是创建指向现有符号链接**所指向的文件的链接**。如果flag参数中设置了AT_SYMLINK_FOLLOW标志，就创建指向符号链接**目标的链接**。如果这个标志被清除了，则创建一个指向符号链接**本身的链接**。
 
 为了删除一个现有的目录项，可以调用unlink函数。
+<a id="unlink"></a>
 ```c
 #include <unistd.h>
 
@@ -996,6 +1006,7 @@ Filesystem     1K-blocks     Used Available Use% Mounted on
 unlink的这种特性经常被程序用来确保即使是在程序崩溃时，它所创建的临时文件与不会遗留下来。进程用open和creat创建一个文件，然后立即调用unlink，因为该文件仍旧是打开的，所以不会将其内容删除。只有当进程关闭该文件或终止时（在这种情况下，内核关闭该进程所打开的全部文件），该文件的内容才被删除。
 
 我们也可以用remove函数解除对一个文件或目录的链接。对于文件，remove的功能与unlink相同。对于目录，remove的功能与rmdir相同。
+<a id="remove"></a>
 ```c
 #include <stdio.h>
 
@@ -1009,6 +1020,7 @@ int remove(const char *pathname);
 ### 4.15. rename和renameat
 
 文件或目录可以用rename函数或者renameat函数进行重命名。
+<a id="rename"></a>
 ```c
 #include <stdio.h>
 
@@ -1114,6 +1126,233 @@ ssize_t readlinkat();
 
 两个函数组合了open、read和close的所有操作。如果函数成功执行，则返回读入buf的字节数。在buf中返回的符号链接内容不以nul字符终止。
 
+### 4.18. 文件的时间
+
+对于把时间戳记录在秒级的文件系统来说，纳秒这个字段就会被填充为0.对于时间戳的记录精度高于秒级的文件系统来说，不足秒的值被转换成纳秒并记录在纳秒这个字段中。
+对每个文件维护3个时间字段。
+
+<a id="href9">与每个文件相关的3个时间值</a>
+
+| 字段    | 说明                   | 例子         | ls选项 |
+| ------- | --------------------- | ------------ | ------ |
+| st_atim | 文件数据的最后访问时间  | read         | -u     |
+| st_mtim | 文件数据的最后修改时间  | write        | 默认   |
+| st_ctim | i节点状态的最后更改时间 | chmod、chown | -c     |
+
+修改时间（st_mtim）是文件内容最后一次被修改的时间。状态更改时间（st_ctim）是该文件的i节点最后一次被修改的时间。
+
+访问时间常常用来删除在一定时间范围内没有被访问过的文件。
+修改时间和状态更改时间可被用来归档那些内容已经修改过或i几点已经被更改过的文件。
+ls 系统默认（-l或-t选项调用时）是按文件的修改时间的先后排序显示。-i选项使ls命令按访问时间排序。-c选项使ls命令按状态更改时间排序。
+
+<a id="href10">各种函数对访问、修改和状态更改时间的作用</a>
+
+<table>
+    <tr>
+        <td rowspan='2' align='middle' valign='middle'>函数</td>
+        <td colspan='3' align='middle'>引用的文件或目录</td>
+        <td colspan='3' align='middle'>所引用的文件或目录的父目录</td>
+        <td rowspan='2' align='middle' valign='middle'>节</td>
+        <td rowspan='2' align='middle' valign='middle'>备注</td>
+    </tr>
+    <tr>
+        <td align='middle'>a</td>
+        <td align='middle'>m</td>
+        <td align='middle'>c</td>
+        <td align='middle'>a</td>
+        <td align='middle'>m</td>
+        <td align='middle'>c</td>
+    </tr>
+    <tr>
+        <td align='left'>
+            chmod、fchmod<br>
+            chown、fchown<br>
+            creat<br>
+            creat<br>
+            exec<br>
+            lchown<br>
+            link<br>
+            mkdir<br>
+            mkfifo<br>
+            open<br>
+            open<br>
+            pipe<br>
+            read<br>
+            remove<br>
+            remove<br>
+            rename<br>
+            rmdir<br>
+            truncate、ftruncate<br>
+            unlink<br>
+            utimes、utimesat、futimens<br>
+            write<br>
+        </td>
+        <td align='middle'>
+            <br>
+            <br>
+            &radic;<br>
+            <br>
+            &radic;<br>
+            <br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br><br>
+            &radic;<br>
+            <br>
+        </td>
+        <td align='middle'>
+            <br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            <br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            &radic;<br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+        </td>
+        <td align='middle'>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            &radic;<br>
+            <br>
+            &radic;<br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+        </td>
+        <td align='middle'>
+        </td>
+        <td align='middle'>
+            <br>
+            <br>
+            &radic;<br>
+            <br>
+            <br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            &radic;<br>
+            <br>
+            <br>
+            <br>
+        </td>
+        <td align='middle'>
+            <br>
+            <br>
+            &radic;<br>
+            <br>
+            <br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            <br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            &radic;<br>
+            <br>
+            &radic;<br>
+            <br>
+            <br>
+            <br>
+        </td>
+        <td align='middle'>
+            <a href="#chmod">chmod</a><br>
+            <a href="#chown">chown</a><br>
+            <a href="#creat">creat</a><br>
+            <a href="#creat">creat</a><br>
+            <a href="#exec">exec</a><br>
+            <a href="#lchown">lchown</a><br>
+            <a href="#link">link</a><br>
+            <a href="#mkdir">mkdir</a><br>
+            <a href="#mkfifo">mkfifo</a><br>
+            <a href="#open">open</a><br>
+            <a href="#open">open</a><br>
+            <a href="#pipe">pipe</a><br>
+            <a href="#read">read</a><br>
+            <a href="#remove">remove</a><br>
+            <a href="#remove">remove</a><br>
+            <a href="#rename">rename</a><br>
+            <a href="#rmdir">rmdir</a><br>
+            <a href="#truncate">truncate</a><br>
+            <a href="#unlink">unlink</a><br>
+            <a href="#utimes">utimes</a><br>
+            <a href="#write">write</a><br>
+        </td>
+        <td align='middle'>
+            <br>
+            <br>
+            O_CREAT 新文件<br>
+            O_TRUNC 现有文件<br>
+            <br>
+            <br>
+            第二个参数的父目录<br>
+            <br>
+            <br>
+            O_CREAT 新文件<br>
+            O_TRUNC 现有文件<br>
+            <br>
+            <br>
+            删除文件=unlink<br>
+            删除目录=rmdir<br>
+            对于两个参数<br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+        </td>
+    </tr>
+</table>
+
+
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
 ## 7. 进程环境
@@ -1134,7 +1373,15 @@ ssize_t readlinkat();
 
 
 <!-- 下面为超链接地址 -->
-[超链接最新编号]: href8
+[超链接最新编号]: href10
+
+<a id="exec"></a>
+<a id="mkdir"></a>
+<a id="mkfifo"></a>
+<a id="pipe"></a>
+<a id="rmdir"></a>
+<a id="utimes"></a>
+
 [1]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon1.png
 [2]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon2.png
 [3]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon3.png
