@@ -1361,6 +1361,7 @@ ls 系统默认（-l或-t选项调用时）是按文件的修改时间的先后�
 ### 4.19. futimens、utimensat和utimes
 
 futimens和utimensat函数可以指定那妙计精度的时间戳。用到的数据结构与<a href="#stat">stat</a>函数族相同的<a href="#timespec">timespec</a>结构。
+<a id="futimens"></a><a id="futimensat"></a>
 ```c
 #include <sys/stat.h>
 
@@ -1371,6 +1372,70 @@ futimens和utimensat函数可以指定那妙计精度的时间戳。用到的数
 
 int futimens(int fd, const struct timespec times[2]);
 int futimensat(int fd, const char *path, const struct timespec times[2], int flag);
+```
+这两个函数的times数组的第一个元素包含访问时间，第二元素包含修改时间。这两个时间值是日历时间。这是自特定时间（1970年1月1日 00:00:00）以来所经过的描述。不足秒的部分用纳秒显示。
+时间戳可以按下列4种方式之一进行指定。
+1.  如果times参数是一个空指针，则访问时间和修改时间两者都设置成当前时间。
+2.  如果times参数指向两个<a href="#timespec">timespec</a>结构的数组，任一数组元素的tv_nsec字段的值为UTIME_NOW，相应的时间戳就设置为当前时间，忽略相应的tc_sec字段。
+3.  如果times参数指向两个<a href="#timespec">timespec</a>结构的数组，任一数组元素的tv_nsec字段的值为UTIME_OMIT，相应的时间戳保持不变，忽略相应的tv_sec字段。
+4.  如果times参数指向两个<a href="#timespec">timespec</a>结构的数组，且tv_nsec字段的值为既不是UTIME_NOW也不是UTIME_OMIT，在这种情况下，相应的时间戳设置为相应的tv_sec和tv_nsec字段的值。
+
+执行这些函数所要求的优先权取决于times参数的值。
+-   如果times是一个空指针，或者任一tv_nsec字段设为UTIME_NOW，则进程的有效用户ID必须等于该文件的所有者ID；进程对该文件必须具有写权限，或者进程是一个超级用户进程。
+-   如果times是非空指针，并且任一tv_nsec字段的值既不是UTIME_NOW也不是UTIME_OMIT，则进程的有效用户ID必须等于该文件的所有者ID，或者进程必须是一个超级用户进程。对文件只具有写权限是不够的。
+-   如果times是非空指针，并且两个tv_nsec字段的值都为UTIME_OMIT，就不执行任何的权限检查。
+
+futimens需要打开文件来更改它的时间。
+utimensat提供了一种使用文件名更改文件时间的方法。pathname参数是相对于fd参数进行计算的，fd要么是打开目录的文件描述符，要么是设置为特殊值AT_FDCWD（强制通过相当于调用进程的当前目录计算pathname）。如果pathname制定了绝对路径，那么fd参数被忽略。
+
+utimensat的flag参数可用于进一步修改默认行为。如果设置了AT_SYMLINK_NOFOLLOW标志，则符号链接本身的时间就会被修改（如果路径名指向符号链接）。默认的行为是跟随符号链接，并把文件的时间改成符号链接的时间。
+
+<a id="utimes"></a>
+```c
+#include <sys/time.h>
+
+/**
+ * @return 0    成功
+ * @return -1   失败
+ */
+
+int utimes(const char *pathname, const struct timeval timesp[2]);
+```
+<a id="timeval"></a>
+struct timeval {
+    time_t      tv_sec;     /* seconds 秒 */
+    long        tv_usec;    /* microseconds 微秒 */
+}
+**注意**，我们不能对状态更改时间st_ctim（i节点最近被修改的时间）指定一个值。因为调用utimes函数时，此字段会被自动更新。
+
+futimens函数实例。
+
+使用带O_TRUNC选项的open函数将文件长度截断为0，但不更改其访问及修改时间。为了做到这一点，首相用stat函数得到这些时间，然后截断文件，最后在用futimens函数重置这个这两个时间。
+
+```shell
+$ cat changemod 
+这是一个测试文件 changemod
+$ cat times
+这是一个测试文件 times
+$ ls -l changemod times 
+-rw-rw-r--. 1 stanley stanley 25 Oct 19 15:56 changemod
+-rw-rw-r--. 1 stanley stanley  0 Oct 19 15:55 times
+$ ls -lu changemod times 
+-rw-rw-r--. 1 stanley stanley 25 Oct 19 16:08 changemod
+-rw-rw-r--. 1 stanley stanley  0 Oct 19 16:08 times
+$ date
+Fri Oct 19 16:08:47 CST 2018
+$ ./
+c_00017_futimens  foo/              
+$ ./c_00017_futimens changemod times 
+$ ls -l changemod times 
+-rw-rw-r--. 1 stanley stanley 0 Oct 19 15:55 changemod
+-rw-rw-r--. 1 stanley stanley 0 Oct 19 15:55 times
+$ ls -lu changemod times 
+-rw-rw-r--. 1 stanley stanley 0 Oct 19 16:08 changemod
+-rw-rw-r--. 1 stanley stanley 0 Oct 19 16:08 times
+$ cat changemod 
+$ cat times
 ```
 
 ## 5. 标准I/O库
