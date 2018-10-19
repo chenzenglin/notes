@@ -46,6 +46,7 @@
         - [4.17 创建和读取符号链接](#417-创建和读取符号链接)
         - [4.18. 文件的时间](#418-文件的时间)
         - [4.19. futimens、utimensat和utimes](#419-futimensutimensat和utimes)
+        - [4.20 mkdir、mkdirat和rmdir](#420-mkdirmkdirat和rmdir)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -1436,6 +1437,22 @@ $ ls -lu changemod times
 -rw-rw-r--. 1 stanley stanley 0 Oct 19 16:08 times
 $ cat changemod 
 $ cat times
+```
+
+### 4.20 mkdir、mkdirat和rmdir
+
+用mkdir和mkdirat函数创建目录，用rmdir函数删除目录。
+<a id="mkdir"></a><a id="mkdirat"></a>
+```c
+#include <sys/stat.h>
+
+/**
+ * @return 0    成功
+ * @return -1   出错
+ */
+
+int mkdir(const char *pathname, mode_t mode);
+int mkdirar(int fd, const char *pathname, mode_t mode);
 ```
 
 ## 5. 标准I/O库
