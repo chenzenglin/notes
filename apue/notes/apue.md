@@ -1454,6 +1454,8 @@ $ cat times
 int mkdir(const char *pathname, mode_t mode);
 int mkdirar(int fd, const char *pathname, mode_t mode);
 ```
+这两个函数创建一个新的空目录。其中.和..目录项是自动创建的。
+常见的错误是指定与文件相同的mode（只指定读、写权限）。但是，对于目录通常至少要设一个**执行权限位**，以允许访问该目录的文件名。
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
