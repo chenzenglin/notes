@@ -47,6 +47,7 @@
         - [4.18. 文件的时间](#418-文件的时间)
         - [4.19. futimens、utimensat和utimes](#419-futimensutimensat和utimes)
         - [4.20 mkdir、mkdirat和rmdir](#420-mkdirmkdirat和rmdir)
+        - [4.21. 读目录](#421-读目录)
     - [5. 标准I/O库](#5-标准io库)
     - [6. 系统数据文件和信息](#6-系统数据文件和信息)
     - [7. 进程环境](#7-进程环境)
@@ -1470,6 +1471,50 @@ int mkdirar(int fd, const char *pathname, mode_t mode);
 int rmdir(const char *pathname);
 ```
 
+### 4.21. 读目录
+
+对某个目录具有访问权限的任一用户都可以读取目录，但是，为了防止文件系统产生混乱，只有内核才能写目录。
+<a id="opendir"></a><a id="fopendior"></a><a id="readdir"></a><a id="rewinddir"></a><a id="closedir"></a><a id="telldir"></a><a id="seekdir"></a>
+```c
+#include <drient.h>
+
+/**
+ * @return 指针      成功
+ * @return NULL     失败
+ */
+DIR *opendir(const char * pathname);
+DIR *fopendior(int fd);
+
+/**
+ * @return 指针      成功
+ * @return NULL     目录尾或失败
+ */
+struct dirent *readdir(DIR *dp);
+
+void rewinddir(DIR *dp);
+
+/**
+ * @return 0    成功
+ * @return -1   失败
+ */
+int closedir(DIR *dp);
+
+/**
+ * @return 与dp关联的目录中的当前位置
+ */
+long telldir(DIR *dp);
+
+void seekdir(DIR *dp, long loc);
+```
+fopendior函数可以把打开文件描述符转换成目录处理函数需要的DIR结构。
+
+实现对dirent结构所做的定义至少包含两个成员。
+```c
+ino_t d_ino;        // i-node number
+char d_name[];      // null-terminated filename
+```
+
+遍历层次结构的函数ftw、nftw。ftw跟随符号链接，nftw不跟随符号链接。
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
@@ -1493,10 +1538,8 @@ int rmdir(const char *pathname);
 <!-- 下面为超链接地址 -->
 
 <a id="exec"></a>
-<a id="mkdir"></a>
 <a id="mkfifo"></a>
 <a id="pipe"></a>
-<a id="rmdir"></a>
 <a id="utimes"></a>
 
 [1]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon1.png
