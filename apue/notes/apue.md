@@ -1456,6 +1456,20 @@ int mkdirar(int fd, const char *pathname, mode_t mode);
 ```
 这两个函数创建一个新的空目录。其中.和..目录项是自动创建的。
 常见的错误是指定与文件相同的mode（只指定读、写权限）。但是，对于目录通常至少要设一个**执行权限位**，以允许访问该目录的文件名。
+创建目录的命令mkdir必须由根用户拥有，而且对它设置了设置用户ID位。要通过一个进程创建一个目录，必须用system函数调用mkdir命令。
+
+用rmdir函数可以删除一个空目录。
+<a id="rmdir"></a>
+```c
+#include <unistd.h>
+
+/**
+ * @return 0    成功
+ * @return -1   出错
+ */
+int rmdir(const char *pathname);
+```
+
 
 ## 5. 标准I/O库
 ## 6. 系统数据文件和信息
