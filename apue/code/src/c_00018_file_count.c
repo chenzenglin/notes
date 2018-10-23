@@ -9,7 +9,7 @@ typedef int Myfunc(const char *, const struct stat *, int);
 static Myfunc myfunc;
 static int myftw(char *, Myfunc *);
 static int dopath(Myfunc *);
-static char *path_alloc(size_t *);
+char *path_alloc(size_t *);
 static long nreg, ndir, nblk, nchr, nfifo, nslink, nsock, ntot;
 
 int
