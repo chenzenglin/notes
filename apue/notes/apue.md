@@ -1540,7 +1540,6 @@ char d_name[];      // null-terminated filename
 <a id="exec"></a>
 <a id="mkfifo"></a>
 <a id="pipe"></a>
-<a id="utimes"></a>
 
 [1]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon1.png
 [2]: https://github.com/stanleyguo0207/notes/blob/master/apue/res/icon2.png
