@@ -29,17 +29,17 @@ path_alloc(size_t *sizep) /* also return allocated size, if nonnull */
         if ((pathmax = pathconf("/", _PC_PATH_MAX)) < 0)
         {
             if (errno == 0)
-                pathmax = PATH_MAX_GUESS; /* it��s indeterminate */
+                pathmax = PATH_MAX_GUESS; /* it's indeterminate */
             else
                 err_sys("pathconf error for _PC_PATH_MAX");
         }
         else
         {
-            pathmax++; /* add one since it��s relative to root */
+            pathmax++; /* add one since it's relative to root */
         }
     }
     /*
-     * Before POSIX.1-2001, we aren��t guaranteed that PATH_MAX includes
+     * Before POSIX.1-2001, we aren't guaranteed that PATH_MAX includes
      * the terminating null byte. Same goes for XPG3.
      */
     if ((posix_version < 200112L) && (xsi_version < 4))
